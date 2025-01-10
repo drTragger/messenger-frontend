@@ -30,7 +30,7 @@ export default defineComponent({
   components: { IntlTelInput },
   props: {
     modelValue: {
-      type: String,
+      type: [String, null],
       required: true,
     },
     isInvalid: {
