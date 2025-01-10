@@ -31,7 +31,7 @@
                   class="nav-link"
                   v-if="!isAuthenticated"
               >
-                Login
+                {{ $t("login.button") }}
               </router-link>
             </li>
             <li class="nav-item">
@@ -40,7 +40,7 @@
                   class="nav-link"
                   v-if="!isAuthenticated"
               >
-                Register
+                {{ $t("register.button") }}
               </router-link>
             </li>
             <li class="nav-item">

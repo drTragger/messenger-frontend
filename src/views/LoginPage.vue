@@ -2,8 +2,8 @@
   <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
       <div class="text-center mb-4">
-        <h3 class="fw-bold">{{ appName }} Login</h3>
-        <p class="text-muted">Access your account</p>
+        <h3 class="fw-bold">{{ $t('login.title', {appName: appName}) }}</h3>
+        <p class="text-muted">{{ $t('login.subtitle') }}</p>
       </div>
       <form @submit.prevent="login" novalidate>
         <!-- General Error -->
@@ -13,47 +13,39 @@
 
         <!-- Phone Input -->
         <div class="mb-3">
-          <label for="phone" class="form-label">Phone</label>
-          <IntlTelInput
-              class="form-control"
-              :class="{ 'is-invalid': validationErrors.phone }"
-              :options="{
-                initialCountry: 'ua',
-                countryOrder: ['ua', 'us', 'pl'],
-                excludeCountries: ['ru'],
-                separateDialCode: true,
-                strictMode: true,
-                containerClass: 'w-100'
-              }"
-              @changeNumber="phone = $event"
-              @changeValidity="phoneIsValid = $event"
+          <label for="phone" class="form-label">{{ $t('login.form.phone.label') }}</label>
+          <PhoneInput
+              v-model="phone"
+              :is-invalid="!!validationErrors.phone"
+              :errorMessage="validationErrors.phone"
+              @validityChange="phoneIsValid = $event"
           />
-          <div v-if="validationErrors.phone" class="invalid-feedback d-block">
-            {{ validationErrors.phone }}
-          </div>
         </div>
 
         <!-- Password Input -->
         <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
+          <label for="password" class="form-label">{{ $t('login.form.password.label') }}</label>
           <input
               v-model="password"
               type="password"
               class="form-control"
               :class="{ 'is-invalid': validationErrors.password }"
               id="password"
-              placeholder="Enter your password"
+              :placeholder="$t('login.form.password.placeholder')"
               required
           />
           <div class="invalid-feedback">{{ validationErrors.password }}</div>
         </div>
 
         <!-- Login Button -->
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <button type="submit" class="btn btn-primary w-100">{{ $t('login.button') }}</button>
         <div class="text-center mt-3">
           <small class="text-muted">
-            Don't have an account?
-            <router-link to="/register" class="text-primary text-decoration-none">Register</router-link>
+            {{ $t('login.noAccount') }}
+            <router-link to="/register" class="text-primary text-decoration-none">{{
+                $t('register.button')
+              }}
+            </router-link>
           </small>
         </div>
       </form>
@@ -63,11 +55,11 @@
 
 <script>
 import apiClient from "@/api";
-import IntlTelInput from "intl-tel-input/vueWithUtils";
 import "whatwg-fetch";
+import PhoneInput from "@/views/partials/PhoneInput.vue"
 
 export default {
-  components: { IntlTelInput },
+  components: {PhoneInput},
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
@@ -85,7 +77,7 @@ export default {
 
       // Validate phone number
       if (!this.phoneIsValid) {
-        this.validationErrors.phone = "Phone number is invalid.";
+        this.validationErrors.phone = this.$t('validation.phone.invalid');
         return;
       }
 
@@ -107,7 +99,7 @@ export default {
         } else if (error.response?.data?.message) {
           this.generalError = error.response.data.message; // General error message
         } else {
-          this.generalError = "An unexpected error occurred. Please try again.";
+          this.generalError = this.$t('errors.unexpected');
         }
       }
     },

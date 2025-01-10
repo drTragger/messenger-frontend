@@ -2,65 +2,55 @@
   <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
       <div class="text-center mb-4">
-        <h3 class="fw-bold">Create an Account</h3>
-        <p class="text-muted">Join {{ appName }} today!</p>
+        <h3 class="fw-bold">{{ $t('register.title') }}</h3>
+        <p class="text-muted">{{ $t('register.subtitle', {appName: appName}) }}</p>
       </div>
       <form @submit.prevent="register" novalidate>
         <div v-if="generalError" class="alert alert-danger" role="alert">
           {{ generalError }}
         </div>
         <div class="mb-3">
-          <label for="username" class="form-label">Username</label>
+          <label for="username" class="form-label">{{ $t('register.form.username.label') }}</label>
           <input
               v-model="username"
               type="text"
               class="form-control"
               :class="{ 'is-invalid': validationErrors.username }"
               id="username"
-              placeholder="Enter your username"
+              :placeholder="$t('register.form.username.placeholder')"
               required
           />
           <!-- Display username error -->
           <div class="invalid-feedback">{{ validationErrors.username }}</div>
         </div>
         <div class="mb-3">
-          <label for="phone" class="form-label">Phone</label>
-          <IntlTelInput
-              class="form-control"
-              :class="{ 'is-invalid': validationErrors.phone }"
-              :options="{
-                initialCountry: 'ua',
-                countryOrder: ['ua', 'us', 'pl'],
-                excludeCountries: ['ru'],
-                separateDialCode: true,
-                strictMode: true,
-                containerClass: 'w-100'
-              }"
-              @changeNumber="phone = $event"
-              @changeValidity="phoneIsValid = $event"
+          <label for="phone" class="form-label">{{ $t('register.form.phone.label') }}</label>
+          <PhoneInput
+              v-model="phone"
+              :is-invalid="!!validationErrors.phone"
+              :errorMessage="validationErrors.phone"
+              @validityChange="phoneIsValid = $event"
           />
-          <!-- Display phone error -->
-          <div v-if="validationErrors.phone" class="invalid-feedback d-block">{{ validationErrors.phone }}</div>
         </div>
         <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
+          <label for="password" class="form-label">{{ $t('register.form.password.label') }}</label>
           <input
               v-model="password"
               type="password"
               class="form-control"
               :class="{ 'is-invalid': validationErrors.password }"
               id="password"
-              placeholder="Enter your password"
+              :placeholder="$t('register.form.password.placeholder')"
               required
           />
           <!-- Display password error -->
           <div class="invalid-feedback">{{ validationErrors.password }}</div>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Register</button>
+        <button type="submit" class="btn btn-primary w-100">{{ $t('register.button') }}</button>
         <div class="text-center mt-3">
           <small class="text-muted">
-            Already have an account?
-            <router-link to="/login" class="text-primary text-decoration-none">Login</router-link>
+            {{ $t('register.haveAccount') }}
+            <router-link to="/login" class="text-primary text-decoration-none">{{ $t('login.button') }}</router-link>
           </small>
         </div>
       </form>
@@ -70,10 +60,10 @@
 
 <script>
 import apiClient from "@/api";
-import IntlTelInput from "intl-tel-input/vueWithUtils";
+import PhoneInput from "@/views/partials/PhoneInput.vue";
 
 export default {
-  components: {IntlTelInput},
+  components: {PhoneInput},
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
@@ -90,7 +80,7 @@ export default {
       this.validationErrors = {}; // Clear previous errors
       try {
         if (!this.phoneIsValid) {
-          this.validationErrors.phone = "Phone number is invalid.";
+          this.validationErrors.phone = this.$t('validation.phone.invalid');
           return;
         }
 
@@ -109,7 +99,7 @@ export default {
         } else if (error.response?.data?.message) {
           this.generalError = error.response.data.message; // General error message
         } else {
-          this.generalError = "An unexpected error occurred. Please try again.";
+          this.generalError = this.$t('errors.unexpected');
         }
       }
     },
