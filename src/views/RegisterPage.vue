@@ -1,14 +1,30 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
+  <div class="d-flex justify-content-center align-items-center container my-5" style="height: 80vh">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+      <!-- Logo -->
+      <div class="text-center mb-3">
+        <img
+            :src="require('@/assets/logo.webp')"
+            :alt="appName + ' Logo'"
+            class="img-fluid"
+            style="max-width: 100px;"
+        />
+      </div>
+
+      <!-- Title and Subtitle -->
       <div class="text-center mb-4">
         <h3 class="fw-bold">{{ $t('register.title') }}</h3>
-        <p class="text-muted">{{ $t('register.subtitle', {appName: appName}) }}</p>
+        <p class="text-muted">{{ $t('register.subtitle', { appName: appName }) }}</p>
       </div>
+
+      <!-- Register Form -->
       <form @submit.prevent="register" novalidate>
+        <!-- General Error -->
         <div v-if="generalError" class="alert alert-danger" role="alert">
           {{ generalError }}
         </div>
+
+        <!-- Username Input -->
         <div class="mb-3">
           <label for="username" class="form-label">{{ $t('register.form.username.label') }}</label>
           <input
@@ -20,9 +36,10 @@
               :placeholder="$t('register.form.username.placeholder')"
               required
           />
-          <!-- Display username error -->
           <div class="invalid-feedback">{{ validationErrors.username }}</div>
         </div>
+
+        <!-- Phone Input -->
         <div class="mb-3">
           <label for="phone" class="form-label">{{ $t('register.form.phone.label') }}</label>
           <PhoneInput
@@ -32,6 +49,8 @@
               @validityChange="phoneIsValid = $event"
           />
         </div>
+
+        <!-- Password Input -->
         <div class="mb-3">
           <label for="password" class="form-label">{{ $t('register.form.password.label') }}</label>
           <input
@@ -43,14 +62,17 @@
               :placeholder="$t('register.form.password.placeholder')"
               required
           />
-          <!-- Display password error -->
           <div class="invalid-feedback">{{ validationErrors.password }}</div>
         </div>
+
+        <!-- Register Button -->
         <button type="submit" class="btn btn-primary w-100">{{ $t('register.button') }}</button>
         <div class="text-center mt-3">
           <small class="text-muted">
             {{ $t('register.haveAccount') }}
-            <router-link to="/login" class="text-primary text-decoration-none">{{ $t('login.button') }}</router-link>
+            <router-link to="/login" class="text-primary text-decoration-none">
+              {{ $t('login.button') }}
+            </router-link>
           </small>
         </div>
       </form>
@@ -60,7 +82,7 @@
 
 <script>
 import apiClient from "@/api";
-import PhoneInput from "@/views/partials/PhoneInput.vue";
+import PhoneInput from "@/components/PhoneInput.vue";
 
 export default {
   components: {PhoneInput},

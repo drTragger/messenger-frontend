@@ -1,23 +1,32 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
+import ChatPage from '@/views/ChatPage.vue'
+import {authStore} from "@/utils/auth";
 
 const routes = [
     {
         path: '/',
         name: 'HomePage',
-        component: HomePage
+        component: HomePage,
+        meta: {requiresAuth: true},
+    },
+    {
+        path: '/chats/:chatId',
+        name: 'ChatPage',
+        component: ChatPage,
+        meta: {requiresAuth: true}, // Protect the route
     },
     {
         path: '/login',
         name: 'LoginPage',
-        component: LoginPage
+        component: LoginPage,
     },
     {
         path: '/register',
         name: 'RegisterPage',
-        component: RegisterPage
+        component: RegisterPage,
     }
 ]
 
@@ -26,14 +35,22 @@ const router = createRouter({
     routes
 })
 
-// Middleware для перевірки авторизації
-router.beforeEach((to, from, next) => {
-    const isAuthenticated = localStorage.getItem('token') // Замість token використовуйте своє поле
-    if (to.meta.requiresAuth && !isAuthenticated) {
-        next({ name: 'Login' })
+router.beforeEach(async (to, from, next) => {
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                await authStore.fetchUser();
+                next();
+            } catch {
+                next({name: 'LoginPage'});
+            }
+        } else {
+            next({name: 'LoginPage'});
+        }
     } else {
-        next()
+        next();
     }
-})
+});
 
 export default router

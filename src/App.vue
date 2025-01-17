@@ -4,11 +4,11 @@
       <div class="container">
         <a href="/" class="navbar-brand d-flex align-items-center">
           <img
-              :src="require('@/assets/logo.png')"
-              alt="Messenger Logo"
+              :src="require('@/assets/logo.webp')"
+              :alt="appName + ' Logo'"
               width="30"
               height="30"
-              class="d-inline-block align-text-top me-2"
+              class="me-2"
           />
           <span>{{ appName }}</span>
         </a>
@@ -25,81 +25,140 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <router-link
-                  to="/login"
-                  class="nav-link"
-                  v-if="!isAuthenticated"
+            <!-- Language Switcher -->
+            <li class="nav-item dropdown">
+              <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="languageSwitcher"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
               >
+                {{ currentLanguageWithFlag }}
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="languageSwitcher">
+                <li
+                    v-for="lang in languages"
+                    :key="lang.code"
+                    class="dropdown-item d-flex align-items-center"
+                    @click="changeLanguage(lang.code)"
+                >
+                  <span class="me-2">{{ lang.flag }}</span>
+                  {{ lang.label }}
+                </li>
+              </ul>
+            </li>
+
+            <!-- Login/Logout Buttons -->
+            <li class="nav-item" v-if="!isAuthenticated">
+              <router-link to="/login" class="nav-link">
                 {{ $t("login.button") }}
               </router-link>
             </li>
-            <li class="nav-item">
-              <router-link
-                  to="/register"
-                  class="nav-link"
-                  v-if="!isAuthenticated"
-              >
+            <li class="nav-item" v-if="!isAuthenticated">
+              <router-link to="/register" class="nav-link">
                 {{ $t("register.button") }}
               </router-link>
             </li>
-            <li class="nav-item">
+            <li class="nav-item d-flex justify-content-center align-items-center" v-if="isAuthenticated">
               <button
-                  v-if="isAuthenticated"
                   class="btn btn-outline-danger btn-sm d-flex align-items-center"
                   @click="logout"
-                  title="Logout"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
               >
-                <i class="bi bi-door-open me-2"></i>
-                Logout
+                <i class="bi bi-door-open me-2"></i> {{ $t('login.logout') }}
               </button>
             </li>
           </ul>
         </div>
       </div>
     </header>
-    <main class="container my-5">
+    <main>
       <router-view/>
     </main>
   </div>
 </template>
 
 <script>
-import {logoutUser} from "@/utils/auth";
+import {logoutUser, authStore} from "@/utils/auth";
+import {useI18n} from "vue-i18n";
+import {getWebSocketManager} from "@/utils/websocket/websocket";
 
 export default {
   name: "App",
+  setup() {
+    const {locale} = useI18n();
+    return {locale, authStore};
+  },
   data() {
     return {
-      isAuthenticated: false,
       appName: process.env.VUE_APP_NAME,
+      languages: [
+        {code: "en", label: "English", flag: "🇺🇸"},
+        {code: "uk", label: "Українська", flag: "🇺🇦"},
+        {code: "pl", label: "Polski", flag: "🇵🇱"},
+      ],
     };
   },
   created() {
-    this.checkAuth();
+    authStore.initialize();
+    this.setInitialLanguage();
+
+    if (this.isAuthenticated && 'Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+        } else {
+          console.warn('Notification permission denied.');
+        }
+      });
+    }
+  },
+  computed: {
+    isAuthenticated() {
+      return !!authStore.isAuthenticated;
+    },
+    currentLanguageWithFlag() {
+      const lang = this.languages.find((lang) => lang.code === this.locale);
+      return lang ? `${lang.flag} ${lang.label}` : "🌐 Select";
+    },
+  },
+  beforeUnmount() {
+    const wsManager = getWebSocketManager(process.env.APP_VUE_WS_URL, authStore.token);
+    wsManager.disconnect();
   },
   methods: {
-    checkAuth() {
-      this.isAuthenticated = !!localStorage.getItem("token");
-    },
     async logout() {
-      await logoutUser(this.$router); // Use the utility function
-      this.isAuthenticated = false; // Update local state
+      await logoutUser(this.$router);
+      const wsManager = getWebSocketManager(process.env.APP_VUE_WS_URL, authStore.token);
+      wsManager.disconnect();
     },
-  },
-  watch: {
-    $route() {
-      this.checkAuth();
+    changeLanguage(lang) {
+      this.$i18n.locale = lang; // Correctly update locale
+      localStorage.setItem("selectedLanguage", lang); // Persist language
+      location.reload();
+    },
+    setInitialLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage");
+      if (savedLanguage) {
+        this.$i18n.locale = savedLanguage || 'uk';
+      }
     },
   },
 };
 </script>
 
 <style>
+:root {
+  --header-height: 56px;
+}
+
 body {
   font-family: "Arial", sans-serif;
+}
+
+header {
+  height: var(--header-height);
 }
 
 .navbar-brand span {
@@ -129,5 +188,13 @@ body {
 .nav-item button:hover {
   background-color: #f8d7da; /* Light red background on hover */
   color: #721c24; /* Darker red text on hover */
+}
+
+#navbarNav li.dropdown-item {
+  cursor: pointer;
+}
+
+#navbarNav li.dropdown-item span {
+  font-size: 1.25rem; /* Increase flag size */
 }
 </style>

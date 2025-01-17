@@ -1,10 +1,23 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
+  <div class="d-flex justify-content-center align-items-center container my-5" style="height: 80vh">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+      <!-- Logo -->
+      <div class="text-center mb-3">
+        <img
+            :src="require('@/assets/logo.webp')"
+            :alt="appName + ' Logo'"
+            class="img-fluid"
+            style="max-width: 100px;"
+        />
+      </div>
+
+      <!-- Title and Subtitle -->
       <div class="text-center mb-4">
-        <h3 class="fw-bold">{{ $t('login.title', {appName: appName}) }}</h3>
+        <h3 class="fw-bold">{{ $t('login.title', { appName: appName }) }}</h3>
         <p class="text-muted">{{ $t('login.subtitle') }}</p>
       </div>
+
+      <!-- Login Form -->
       <form @submit.prevent="login" novalidate>
         <!-- General Error -->
         <div v-if="generalError" class="alert alert-danger" role="alert">
@@ -38,7 +51,18 @@
         </div>
 
         <!-- Login Button -->
-        <button type="submit" class="btn btn-primary w-100">{{ $t('login.button') }}</button>
+        <button
+            type="submit"
+            class="btn btn-primary w-100 d-flex align-items-center justify-content-center"
+            :disabled="loading"
+        >
+          <span v-if="!loading">{{ $t('login.button') }}</span>
+          <span v-else>
+            <i class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></i>
+            {{ $t('loading') }}
+          </span>
+        </button>
+
         <div class="text-center mt-3">
           <small class="text-muted">
             {{ $t('login.noAccount') }}
@@ -55,11 +79,14 @@
 
 <script>
 import apiClient from "@/api";
-import "whatwg-fetch";
-import PhoneInput from "@/views/partials/PhoneInput.vue"
+import PhoneInput from "@/components/PhoneInput.vue";
+import { authStore } from "@/utils/auth";
 
 export default {
-  components: {PhoneInput},
+  components: { PhoneInput },
+  setup() {
+    return { authStore };
+  },
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
@@ -67,19 +94,15 @@ export default {
       password: null,
       phoneIsValid: null,
       validationErrors: {},
-      generalError: null, // For non-field-specific errors
+      generalError: null,
+      loading: false, // Loading state
     };
   },
   methods: {
     async login() {
       this.validationErrors = {};
       this.generalError = null;
-
-      // Validate phone number
-      if (!this.phoneIsValid) {
-        this.validationErrors.phone = this.$t('validation.phone.invalid');
-        return;
-      }
+      this.loading = true;
 
       try {
         const response = await apiClient.post("/login", {
@@ -87,20 +110,19 @@ export default {
           password: this.password,
         });
 
-        // Login successful
         if (response.data.success) {
-          localStorage.setItem("token", response.data.data.token);
-          this.$router.push({name: "HomePage"});
+          await authStore.login(response.data.data.token);
+
+          this.$router.push({ name: "HomePage" });
         }
       } catch (error) {
-        // Handle validation and general errors
         if (error.response?.data?.fields) {
-          this.validationErrors = error.response.data.fields; // Field-specific errors
-        } else if (error.response?.data?.message) {
-          this.generalError = error.response.data.message; // General error message
+          this.validationErrors = error.response.data.fields;
         } else {
-          this.generalError = this.$t('errors.unexpected');
+          this.generalError = error.response?.data?.message || this.$t("errors.unexpected");
         }
+      } finally {
+        this.loading = false;
       }
     },
   },
@@ -108,12 +130,8 @@ export default {
 </script>
 
 <style scoped>
-.form-label {
-  margin-bottom: 5px;
-  display: block;
-}
-
-.alert {
-  padding: 0.75rem 1.25rem;
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

@@ -5,7 +5,7 @@
         :class="{ 'is-invalid': isInvalid }"
         :options="{
           initialCountry: 'ua',
-          onlyCountries: onlyCountries,
+          onlyCountries: this.onlyCountries,
           separateDialCode: true,
           strictMode: true,
           containerClass: 'w-100',
@@ -21,13 +21,13 @@
 </template>
 
 <script>
-import { computed, defineComponent } from "vue";
+import {computed, defineComponent} from "vue";
 import IntlTelInput from "intl-tel-input/vueWithUtils";
-import { useI18n } from "vue-i18n";
+import {useI18n} from "vue-i18n";
 
 export default defineComponent({
   name: "PhoneInput",
-  components: { IntlTelInput },
+  components: {IntlTelInput},
   props: {
     modelValue: {
       type: [String, null],
@@ -47,8 +47,8 @@ export default defineComponent({
     },
   },
   emits: ["update:modelValue", "validityChange"],
-  setup(props, { emit }) {
-    const { t } = useI18n();
+  setup(props, {emit}) {
+    const {t} = useI18n();
 
     // Provide translations for country names
     const countryTranslations = computed(() => ({
