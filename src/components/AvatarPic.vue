@@ -3,7 +3,7 @@
     <i v-if="!profilePicture" class="bi bi-person-circle fs-1 text-secondary"></i>
     <img
         v-else
-        :src="profilePicture"
+        :src="getProfilePicture"
         alt="Profile"
         class="avatar rounded-circle"
     />
@@ -16,6 +16,12 @@ export default {
   props: {
     profilePicture: String,
     isOnline: Boolean,
+  },
+  computed: {
+    getProfilePicture() {
+      const apiUrl = process.env.VUE_APP_API_URL.replace(/\/+$/, '')
+      return `${apiUrl}/users/profile-picture?file=${this.profilePicture}`
+    }
   },
 };
 </script>
@@ -32,6 +38,8 @@ export default {
 
 img.avatar {
   border-radius: 50%;
+  width: inherit;
+  height: inherit;
 }
 
 .status-indicator {
