@@ -4,6 +4,7 @@ import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import ChatPage from '@/views/ChatPage.vue'
 import {authStore} from "@/utils/auth";
+import UserSettings from "@/views/UserSettings.vue";
 
 const routes = [
     {
@@ -16,7 +17,13 @@ const routes = [
         path: '/chats/:chatId',
         name: 'ChatPage',
         component: ChatPage,
-        meta: {requiresAuth: true}, // Protect the route
+        meta: {requiresAuth: true},
+    },
+    {
+        path: '/settings',
+        name: 'UserSettings',
+        component: UserSettings,
+        meta: {requiresAuth: true},
     },
     {
         path: '/login',

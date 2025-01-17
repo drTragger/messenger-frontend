@@ -26,29 +26,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <!-- Language Switcher -->
-            <li class="nav-item dropdown">
-              <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  id="languageSwitcher"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-              >
-                {{ currentLanguageWithFlag }}
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="languageSwitcher">
-                <li
-                    v-for="lang in languages"
-                    :key="lang.code"
-                    class="dropdown-item d-flex align-items-center"
-                    @click="changeLanguage(lang.code)"
-                >
-                  <span class="me-2">{{ lang.flag }}</span>
-                  {{ lang.label }}
-                </li>
-              </ul>
-            </li>
+            <LanguageSwitcher v-if="!isAuthenticated" variant="navbar" />
 
             <!-- Login/Logout Buttons -->
             <li class="nav-item" v-if="!isAuthenticated">
@@ -62,12 +40,9 @@
               </router-link>
             </li>
             <li class="nav-item d-flex justify-content-center align-items-center" v-if="isAuthenticated">
-              <button
-                  class="btn btn-outline-danger btn-sm d-flex align-items-center"
-                  @click="logout"
-              >
-                <i class="bi bi-door-open me-2"></i> {{ $t('login.logout') }}
-              </button>
+              <router-link to="/settings" class="nav-link d-flex align-items-center justify-content-center">
+                <i class="pi pi-cog" style="font-size: 1.5rem"></i>
+              </router-link>
             </li>
           </ul>
         </div>
@@ -80,12 +55,14 @@
 </template>
 
 <script>
-import {logoutUser, authStore} from "@/utils/auth";
+import {authStore} from "@/utils/auth";
 import {useI18n} from "vue-i18n";
 import {getWebSocketManager} from "@/utils/websocket/websocket";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 
 export default {
   name: "App",
+  components: {LanguageSwitcher},
   setup() {
     const {locale} = useI18n();
     return {locale, authStore};
@@ -93,11 +70,6 @@ export default {
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
-      languages: [
-        {code: "en", label: "English", flag: "🇺🇸"},
-        {code: "uk", label: "Українська", flag: "🇺🇦"},
-        {code: "pl", label: "Polski", flag: "🇵🇱"},
-      ],
     };
   },
   created() {
@@ -118,26 +90,12 @@ export default {
     isAuthenticated() {
       return !!authStore.isAuthenticated;
     },
-    currentLanguageWithFlag() {
-      const lang = this.languages.find((lang) => lang.code === this.locale);
-      return lang ? `${lang.flag} ${lang.label}` : "🌐 Select";
-    },
   },
   beforeUnmount() {
     const wsManager = getWebSocketManager(process.env.APP_VUE_WS_URL, authStore.token);
     wsManager.disconnect();
   },
   methods: {
-    async logout() {
-      await logoutUser(this.$router);
-      const wsManager = getWebSocketManager(process.env.APP_VUE_WS_URL, authStore.token);
-      wsManager.disconnect();
-    },
-    changeLanguage(lang) {
-      this.$i18n.locale = lang; // Correctly update locale
-      localStorage.setItem("selectedLanguage", lang); // Persist language
-      location.reload();
-    },
     setInitialLanguage() {
       const savedLanguage = localStorage.getItem("selectedLanguage");
       if (savedLanguage) {

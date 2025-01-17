@@ -20,7 +20,7 @@ export default {
   computed: {
     getProfilePicture() {
       const apiUrl = process.env.VUE_APP_API_URL.replace(/\/+$/, '')
-      return `${apiUrl}/users/profile-picture?file=${this.profilePicture}`
+      return `${apiUrl}/users/profile-picture/${this.profilePicture}`
     }
   },
 };

@@ -74,6 +74,25 @@ export default {
         empty: 'No messages available. Start a conversation!',
         sender: 'Sender',
     },
+    settings: {
+        title: 'Settings',
+        subtitle: 'Manage your account and preferences',
+        profilePicture: {
+            title: 'Profile picture',
+            hint: 'Click to upload a new profile picture',
+            resize: "Resize Profile Picture",
+        },
+        personalInfo: {
+            title: 'Personal information',
+            button: 'Save changes',
+            name: {
+                label: 'Name',
+                placeholder: 'Enter your name',
+            },
+        },
+        language: 'Choose your language',
+        logout: 'Log out of the system'
+    },
     validation: {
         phone: {
             invalid: 'The phone number is invalid',
@@ -84,6 +103,8 @@ export default {
     },
     loading: "Loading...",
     notAvailable: "Not available",
+    save: "Save",
+    cancel: "Cancel",
     countries: {
         ua: 'Ukraine',
         us: 'United States',
