@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import apiClient from "@/api";
+import apiClient from "@/utils/api";
 import AvatarPic from "@/components/AvatarPic.vue";
 
 export default {

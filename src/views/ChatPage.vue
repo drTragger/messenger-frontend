@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import apiClient from "@/api";
+import apiClient from "@/utils/api";
 import {authStore} from "@/utils/auth";
 import {getWebSocketManager} from "@/utils/websocket/websocket";
 import {chatPageWsHandler} from "@/utils/websocket/wsHandlers";

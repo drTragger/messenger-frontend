@@ -1,4 +1,4 @@
-import apiClient from "@/api";
+import apiClient from "@/utils/api";
 import {reactive} from "vue";
 
 export const authStore = reactive({

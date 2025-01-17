@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import apiClient from "@/api";
+import apiClient from "@/utils/api";
 import PhoneInput from "@/components/PhoneInput.vue";
 
 export default {
