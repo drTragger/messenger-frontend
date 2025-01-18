@@ -1,46 +1,44 @@
 <template>
-  <div class="container my-5" v-if="isAuthenticated">
+  <div class="container mx-auto my-10" v-if="isAuthenticated">
     <!-- Header -->
-    <div class="text-center mb-5">
-      <h1 class="text-primary">{{ appName }}</h1>
-      <p class="text-muted">{{ $t('home.subtitle') }}</p>
-    </div>
+    <PageHeader :title="appName" :subtitle="$t('home.subtitle')"/>
 
     <!-- Search Field -->
-    <UserSearch @user-selected="createChat"/>
+    <UserSearch @user-selected="createChat" />
 
     <!-- Chats List -->
-    <div v-if="chats.length" class="list-group">
+    <div v-if="chats.length" class="space-y-4">
       <div
-          class="list-group-item list-group-item-action d-flex align-items-center p-3 shadow-sm"
+          class="flex items-center p-4 bg-white shadow rounded-lg hover:shadow-md transition cursor-pointer"
           v-for="chat in chats"
           :key="chat.id"
           @click="openChat(chat)"
-          style="cursor: pointer"
       >
         <!-- User Avatar -->
-        <AvatarPic :profilePicture="getChatPartner(chat)?.profilePicture" :isOnline="getChatPartner(chat)?.isOnline"/>
+        <AvatarPic
+            :profilePicture="getChatPartner(chat)?.profilePicture"
+            :isOnline="getChatPartner(chat)?.isOnline"
+        />
 
         <!-- Chat Details -->
-        <div class="flex-grow-1">
-          <h5 class="mb-1 text-truncate">{{ getChatPartner(chat).username }}</h5>
-          <p class="mb-0 text-muted text-truncate">
-            {{ chat?.lastMessage?.content || $t('messages.empty') }}
+        <div class="flex-grow ml-4 overflow-hidden">
+          <h5 class="text-gray-800 font-semibold text-lg truncate">
+            {{ getChatPartner(chat).username }}
+          </h5>
+          <p class="text-gray-500 text-md truncate">
+            {{ chat?.lastMessage?.content || $t('chat.lastMessage.empty') }}
           </p>
         </div>
 
         <!-- Time -->
-        <small class="text-muted">
-          {{ formatLastSeen(chat?.lastMessage.createdAt) }}
+        <small class="text-gray-400 text-sm">
+          {{ formatLastSeen(chat?.lastMessage?.createdAt) }}
         </small>
       </div>
     </div>
 
     <!-- No Chats -->
-    <div v-else class="alert alert-info text-center" role="alert">
-      <i class="bi bi-chat-dots-fill fs-4"></i>
-      <p class="mt-2 mb-0 fs-5">{{ $t('messages.empty') }}</p>
-    </div>
+    <NoMessages v-else class="hidden mt-20" ref="noMessages" :title="$t('chat.empty.title')" :subtitle="$t('chat.empty.subtitle')"/>
   </div>
 </template>
 
@@ -52,9 +50,11 @@ import {homePageWsHandler} from "@/utils/websocket/wsHandlers";
 import {formatLastSeen} from "@/utils/formatTime";
 import AvatarPic from "@/components/AvatarPic.vue";
 import UserSearch from "@/components/UserSearch.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import NoMessages from "@/components/NoMessages.vue";
 
 export default {
-  components: {UserSearch, AvatarPic},
+  components: {NoMessages, PageHeader, UserSearch, AvatarPic},
   setup() {
     return {authStore};
   },
@@ -105,6 +105,11 @@ export default {
         });
         this.chats = response.data.data;
       } catch (error) {
+        if (error.status === 404) {
+          if (this.chats.length < 1) {
+            this.$refs.noMessages.$el.classList.remove("hidden");
+          }
+        }
         console.error("Error fetching chats:", error.response?.data?.message || error.message);
         if (error.response?.status === 401) {
           authStore.logout();

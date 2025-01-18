@@ -1,4 +1,5 @@
 import {createRouter, createWebHistory} from 'vue-router'
+import i18n from '@/utils/i18n';
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
@@ -11,29 +12,44 @@ const routes = [
         path: '/',
         name: 'HomePage',
         component: HomePage,
-        meta: {requiresAuth: true},
+        meta: {
+            title: i18n.global.t('chat.title', { count: 2 }),
+            requiresAuth: true
+        },
     },
     {
         path: '/chats/:chatId',
         name: 'ChatPage',
         component: ChatPage,
-        meta: {requiresAuth: true},
+        meta: {
+            title: i18n.global.t('chat.title', { count: 1 }),
+            requiresAuth: true
+        },
     },
     {
         path: '/settings',
         name: 'UserSettings',
         component: UserSettings,
-        meta: {requiresAuth: true},
+        meta: {
+            title: i18n.global.t('settings.title'),
+            requiresAuth: true
+        },
     },
     {
         path: '/login',
         name: 'LoginPage',
         component: LoginPage,
+        meta: {
+            title: i18n.global.t('login.title', {appName: process.env.VUE_APP_NAME}),
+        },
     },
     {
         path: '/register',
         name: 'RegisterPage',
         component: RegisterPage,
+        meta: {
+            title: 'RegisterPage',
+        },
     }
 ]
 
@@ -58,6 +74,7 @@ router.beforeEach(async (to, from, next) => {
     } else {
         next();
     }
+    document.title = to.meta.title || "Default Title";
 });
 
 export default router

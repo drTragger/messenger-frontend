@@ -38,10 +38,17 @@ export default {
         subtitle: 'Your personal messaging space',
     },
     chat: {
-        title: "Chat",
+        title: "Chat | Chats",
         lastSeen: "Last seen",
         online: "Online",
         searchUsers: "Search for users...",
+        empty: {
+            title: 'No chats yet',
+            subtitle: 'Start a conversation by finding your new chat partner.',
+        },
+        lastMessage: {
+            empty: 'No messages yet',
+        },
         message: {
             type: "Type your message...",
             loading: "Loading messages...",
@@ -71,7 +78,10 @@ export default {
         }
     },
     messages: {
-        empty: 'No messages available. Start a conversation!',
+        empty: {
+            title: 'No messages yet',
+            subtitle: 'Start a conversation by sending a message to your chat partner.'
+        },
         sender: 'Sender',
     },
     settings: {
@@ -95,7 +105,7 @@ export default {
     },
     validation: {
         phone: {
-            invalid: 'The phone number is invalid',
+            invalid: 'The phone number is invalid.',
         },
     },
     errors: {
@@ -109,5 +119,6 @@ export default {
         ua: 'Ukraine',
         us: 'United States',
         pl: 'Poland',
+        searchPlaceholder: 'Search',
     },
 };

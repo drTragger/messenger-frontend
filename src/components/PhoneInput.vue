@@ -1,27 +1,26 @@
 <template>
   <div>
+    <label for="phone" class="block text-sm font-medium text-gray-700">{{ $t('login.form.phone.label') }}</label>
     <IntlTelInput
-        class="form-control"
-        :class="{ 'is-invalid': isInvalid }"
+        class="block w-full py-2 border rounded-md intl-tel-input"
+        :class="{ 'p-invalid': !!localErrorMessage }"
         :options="{
           initialCountry: 'ua',
           onlyCountries: this.onlyCountries,
           separateDialCode: true,
           strictMode: true,
-          containerClass: 'w-100',
+          containerClass: 'w-full mt-1',
           i18n: countryTranslations
         }"
-        @changeNumber="updateNumber"
+        @changeNumber="onNumberChange"
         @changeValidity="updateValidity"
     />
-    <div v-if="isInvalid && errorMessage" class="invalid-feedback d-block">
-      {{ errorMessage }}
-    </div>
+    <Message v-if="localErrorMessage" severity="error" variant="simple" size="small">{{ localErrorMessage }}</Message>
   </div>
 </template>
 
 <script>
-import {computed, defineComponent} from "vue";
+import {computed, defineComponent, ref, watch} from "vue";
 import IntlTelInput from "intl-tel-input/vueWithUtils";
 import {useI18n} from "vue-i18n";
 
@@ -32,10 +31,6 @@ export default defineComponent({
     modelValue: {
       type: [String, null],
       required: true,
-    },
-    isInvalid: {
-      type: Boolean,
-      default: false,
     },
     errorMessage: {
       type: String,
@@ -49,35 +44,41 @@ export default defineComponent({
   emits: ["update:modelValue", "validityChange"],
   setup(props, {emit}) {
     const {t} = useI18n();
+    const localErrorMessage = ref(props.errorMessage);
 
     // Provide translations for country names
     const countryTranslations = computed(() => ({
       ua: t("countries.ua"),
       us: t("countries.us"),
       pl: t("countries.pl"),
+      searchPlaceholder: t("countries.searchPlaceholder"),
     }));
 
-    // Emit changes to parent
-    const updateNumber = (value) => {
+    // Watch for external error message updates
+    watch(
+        () => props.errorMessage,
+        (newMessage) => {
+          localErrorMessage.value = newMessage;
+        }
+    );
+
+    // Handle number changes
+    const onNumberChange = (value) => {
+      localErrorMessage.value = ""; // Clear error on input
       emit("update:modelValue", value);
     };
 
+    // Handle validity updates
     const updateValidity = (isValid) => {
       emit("validityChange", isValid);
     };
 
     return {
       countryTranslations,
-      updateNumber,
+      onNumberChange,
       updateValidity,
+      localErrorMessage,
     };
   },
 });
 </script>
-
-<style scoped>
-.invalid-feedback {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-}
-</style>

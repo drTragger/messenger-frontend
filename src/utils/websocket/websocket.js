@@ -109,5 +109,6 @@ export const WebSocketEvents = Object.freeze({
     NEW_MESSAGE: "newMessage",
     EDIT_MESSAGE: "editMessage",
     DELETE_MESSAGE: "deleteMessage",
+    READ_MESSAGE: "readMessage",
     USER_STATUS_CHANGE: "statusChange",
 });

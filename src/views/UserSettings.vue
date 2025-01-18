@@ -1,87 +1,96 @@
 <template>
-  <div class="container mt-5">
-    <!-- Header -->
-    <div class="text-center mb-4">
-      <h1 class="text-primary">{{ $t('settings.title') }}</h1>
-      <p class="text-muted">{{ $t('settings.subtitle') }}</p>
+  <div class="container mx-auto my-10 space-y-6">
+    <div class="relative">
+      <!-- Back Button -->
+      <Button
+          icon="pi pi-arrow-left"
+          class="p-button-outlined p-button-sm absolute left-0"
+          @click="goBack"
+      />
+
+      <!-- Header -->
+      <PageHeader :title="$t('settings.title')" :subtitle="$t('settings.subtitle')"/>
     </div>
 
     <!-- Profile Picture Section -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body d-flex align-items-center">
+    <div class="bg-white shadow-md rounded-lg p-4">
+      <div class="flex items-center space-x-4">
         <div>
-          <AvatarPic :profilePicture="authStore.user?.profilePicture" :isOnline="false" @click="triggerFileInput"/>
+          <AvatarPic
+              :profilePicture="authStore.user?.profilePicture"
+              :isOnline="false"
+              class="cursor-pointer"
+              @click="triggerFileInput"
+          />
           <input
               type="file"
               ref="profilePictureInput"
-              class="d-none"
+              class="hidden"
               @change="showCropper"
           />
         </div>
         <div>
-          <h5 class="card-title">{{ $t('settings.profilePicture.title') }}</h5>
-          <small class="text-muted">{{ $t('settings.profilePicture.hint') }}</small>
+          <h5 class="text-lg font-semibold">{{ $t('settings.profilePicture.title') }}</h5>
+          <p class="text-sm text-gray-500">{{ $t('settings.profilePicture.hint') }}</p>
         </div>
       </div>
     </div>
 
     <!-- Personal Information Section -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ $t('settings.personalInfo.title') }}</h5>
-        <form @submit.prevent="savePersonalInfo">
-          <div class="mb-3">
-            <label for="userName" class="form-label">{{ $t('settings.personalInfo.name.label') }}</label>
-            <input
-                type="text"
-                id="userName"
-                autocomplete="new-password"
-                spellcheck="false"
-                v-model="userName"
-                class="form-control"
-                :placeholder="$t('settings.personalInfo.name.placeholder')"
-            />
-          </div>
-          <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary">
-              {{ $t('settings.personalInfo.button') }}
-            </button>
-          </div>
-        </form>
-      </div>
+    <div class="bg-white shadow-md rounded-lg p-4">
+      <h5 class="text-lg font-semibold mb-4">{{ $t('settings.personalInfo.title') }}</h5>
+      <form @submit.prevent="savePersonalInfo">
+        <div class="mb-4">
+          <label for="name-of-user" class="block text-sm font-medium text-gray-700">
+            {{ $t('settings.personalInfo.name.label') }}
+          </label>
+          <InputText
+              v-model="userName"
+              id="name-of-user"
+              :placeholder="$t('settings.personalInfo.name.placeholder')"
+              autocomplete="new-password"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              class="w-full mt-1 p-inputtext border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div class="text-right">
+          <Button class="p-button p-button-primary">
+            {{ $t('settings.personalInfo.button') }}
+          </Button>
+        </div>
+      </form>
     </div>
 
     <!-- Language Section -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ $t('settings.language') }}</h5>
-        <LanguageSwitcher variant="settings"/>
-      </div>
+    <div class="bg-white shadow-md rounded-lg p-4">
+      <h5 class="text-lg font-semibold mb-4">{{ $t('settings.language') }}</h5>
+      <LanguageSwitcher/>
     </div>
 
     <!-- Logout Section -->
-    <div class="card shadow-sm">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">{{ $t('settings.logout') }}</h5>
-        <button class="btn btn-danger" @click="logout">
-          {{ $t('login.logout') }}
-        </button>
-      </div>
+    <div class="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
+      <h5 class="text-lg font-semibold">{{ $t('settings.logout') }}</h5>
+      <Button class="p-button p-button-danger" @click="logout">
+        {{ $t('login.logout') }}
+      </Button>
     </div>
-  </div>
 
-  <Dialog v-model:visible="isCropperVisible" :header="$t('settings.profilePicture.resize')" :modal="true"
-          :closable="false" class="custom-modal">
-    <div>
-      <div ref="cropperContainer" class="cropper-wrapper">
-        <img :src="imagePreview" ref="imageCropper" alt="Img" class="cropper-image"/>
+    <!-- Cropper Dialog -->
+    <DialogWindow v-model:visible="isCropperVisible" :header="$t('settings.profilePicture.resize')" :modal="true"
+                  :closable="false" class="w-full max-w-3xl">
+      <div>
+        <div ref="cropperContainer" class="cropper-wrapper">
+          <img :src="imagePreview" ref="imageCropper" alt="Img" class="cropper-image"/>
+        </div>
+        <div class="flex justify-end mt-4 space-x-4">
+          <Button class="p-button-outlined" @click="cancelCropper">{{ $t('cancel') }}</Button>
+          <Button class="p-button-primary" @click="uploadCroppedImage">{{ $t('save') }}</Button>
+        </div>
       </div>
-      <div class="d-flex justify-content-end mt-3">
-        <button class="btn btn-outline-secondary me-2" @click="cancelCropper">{{ $t('cancel') }}</button>
-        <button class="btn btn-primary" @click="uploadCroppedImage">{{ $t('save') }}</button>
-      </div>
-    </div>
-  </Dialog>
+    </DialogWindow>
+  </div>
 </template>
 
 <script>
@@ -91,12 +100,12 @@ import {getWebSocketManager} from "@/utils/websocket/websocket";
 import {useI18n} from "vue-i18n";
 import AvatarPic from "@/components/AvatarPic.vue";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
-import {Dialog} from "primevue";
 import Cropper from "cropperjs";
 import "cropperjs/dist/cropper.css";
+import PageHeader from "@/components/PageHeader.vue";
 
 export default {
-  components: {LanguageSwitcher, AvatarPic, Dialog},
+  components: {PageHeader, LanguageSwitcher, AvatarPic},
   setup() {
     const {locale} = useI18n();
     return {
@@ -107,7 +116,7 @@ export default {
   },
   data() {
     return {
-      userName: authStore.user?.username || "",
+      userName: "",
       language: null,
       isCropperVisible: false,
       cropper: null,
@@ -115,12 +124,29 @@ export default {
       croppedImage: null, // The final cropped image blob
     };
   },
-  created() {
+  async created() {
     this.language = this.locale;
+
+    try {
+      const response = await apiClient.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      });
+      const userData = response.data.data;
+
+      authStore.user = userData;
+      this.userName = userData.username;
+    } catch (error) {
+      console.error("Error fetching user data:", error.response?.data || error.message);
+    }
   },
   methods: {
     triggerFileInput() {
       this.$refs.profilePictureInput.click();
+    },
+    goBack() {
+      this.$router.back();
     },
     showCropper(event) {
       const file = event.target.files[0];
@@ -190,11 +216,6 @@ export default {
     savePersonalInfo() {
       console.log(`Name updated: ${this.userName}`);
     },
-    changeLanguage() {
-      this.locale.value = this.language;
-      localStorage.setItem("selectedLanguage", this.language);
-      location.reload();
-    },
     async logout() {
       await logoutUser(this.$router);
       const wsManager = getWebSocketManager(process.env.APP_VUE_WS_URL, authStore.token);
@@ -205,11 +226,6 @@ export default {
 </script>
 
 <style scoped>
-.custom-modal {
-  max-width: 800px;
-  max-height: 90vh;
-}
-
 .cropper-wrapper {
   width: 100%;
   height: 70vh; /* Fit within modal */

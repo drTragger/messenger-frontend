@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-page d-flex flex-column">
+  <div class="chat-page flex flex-col">
     <!-- Chat Header -->
     <ChatHeader
         :username="chatPartner?.username"
@@ -9,21 +9,21 @@
     />
 
     <!-- Messages Section -->
-    <div ref="messagesContainer" class="chat-messages flex-grow-1 py-3 px-5 overflow-auto position-relative">
+    <div ref="messagesContainer" class="flex-grow overflow-auto py-3 px-5 relative bg-white flex flex-col">
       <!-- Loading Indicator -->
       <div
           v-if="loading"
-          class="loading-indicator text-center bg-light d-flex justify-content-center align-items-center fade position-absolute top-0 start-0 w-100"
+          class="absolute inset-x-0 top-0 flex items-center justify-center bg-white bg-opacity-75 py-3"
       >
-        <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-        {{ $t('chat.message.loading') }}
+        <div class="animate-spin h-5 w-5 border-4 border-gray-600 border-t-transparent rounded-full"></div>
+        <span class="ml-2 text-gray-600">{{ $t('chat.message.loading') }}</span>
       </div>
 
       <!-- Messages Grouped by Date -->
-      <template v-for="(group, date) in groupedMessages" :key="date">
-        <!-- Date Header -->
-        <div class="date-header text-center my-3">
-          <small class="text-muted">
+      <div v-if="!loading && this.messages.length">
+        <template v-for="(group, date) in groupedMessages" :key="date">
+          <!-- Date Header -->
+          <div class="text-center my-4 text-sm text-gray-500">
             {{
               formatTime(date, isCurrentYear(date) ? {month: "long", day: "numeric"} : {
                 year: "numeric",
@@ -31,29 +31,30 @@
                 day: "numeric"
               })
             }}
-          </small>
-        </div>
+          </div>
 
-        <!-- Messages -->
-        <div v-for="message in group" :key="message.id" class="mb-2">
-          <MessageBubble
-              :message="message"
-              :isMine="message.senderId === currentUserId"
-              :isEnglishLocale="isEnglishLocale"
-              @context-menu="openContextMenu($event, message)"
-          />
-        </div>
-      </template>
+          <!-- Messages -->
+          <div v-for="message in group" :key="message.id" class="mb-2">
+            <MessageBubble
+                :message="message"
+                :isMine="message.senderId === currentUserId"
+                :isEnglishLocale="isEnglishLocale"
+                @context-menu="openContextMenu($event, message)"
+                @mark-as-read="markMessageAsRead"
+            />
+          </div>
+        </template>
+      </div>
+
+      <!-- No Messages Container -->
+      <NoMessages v-else class="hidden" ref="noMessages" :title="$t('messages.empty.title')" :subtitle="$t('messages.empty.subtitle')"/>
     </div>
 
     <!-- Context Menu -->
-    <ContextMenu
-        ref="contextMenu"
-        :model="contextMenuItems"
-        :popup="true"
-    >
+    <ContextMenu ref="contextMenu" :model="contextMenuItems" :popup="true">
       <template #item="{ item, props }">
-        <a class="d-flex align-items-center py-1" v-bind="props.action" :style="{color: item.color ?? null}">
+        <a class="flex items-center px-4 py-2 hover:bg-gray-100 rounded transition duration-200 ease-in-out"
+           v-bind="props.action" :style="{color: item.color ?? null}">
           <span :class="item.icon"/>
           <span class="ml-2">{{ item.label }}</span>
           <Badge v-if="item.badge" class="mx-auto" :value="item.badge"/>
@@ -83,9 +84,10 @@ import MessageInput from "@/components/MessageInput.vue";
 import ChatHeader from "@/components/ChatHeader.vue";
 import ContextMenu from "primevue/contextmenu";
 import Badge from "primevue/badge";
+import NoMessages from "@/components/NoMessages.vue";
 
 export default {
-  components: {ChatHeader, MessageInput, MessageBubble, ContextMenu, Badge},
+  components: {NoMessages, ChatHeader, MessageInput, MessageBubble, ContextMenu, Badge},
   setup() {
     return {authStore};
   },
@@ -189,8 +191,8 @@ export default {
       const previousScrollHeight = container.scrollHeight;
 
       try {
-        const response = await apiClient.get("/messages", {
-          params: {chatId: this.chatId, limit, offset: this.messages.length},
+        const response = await apiClient.get(`/chats/${this.chatId}/messages`, {
+          params: {limit, offset: this.messages.length},
           headers: {Authorization: `Bearer ${authStore.token}`},
         });
 
@@ -206,7 +208,12 @@ export default {
         const newScrollHeight = container.scrollHeight;
         container.scrollTop = newScrollHeight - previousScrollHeight;
       } catch (error) {
-        if (error.status === 404) return;
+        if (error.status === 404) {
+          if (this.messages.length < 1) {
+            this.$refs.noMessages.$el.classList.remove("hidden");
+          }
+          return;
+        }
         console.error("Error fetching messages:", error.message);
       } finally {
         this.loading = false;
@@ -231,7 +238,7 @@ export default {
 
       if (this.editingMessage) {
         try {
-          const response = await apiClient.patch(`/messages/${this.editingMessage.id}`,
+          const response = await apiClient.patch(`/chats/${this.chatId}/messages/${this.editingMessage.id}`,
               {content: message},
               {headers: {Authorization: `Bearer ${authStore.token}`}},
           );
@@ -252,7 +259,7 @@ export default {
           recipientId: this.chatPartner.id,
         };
 
-        await apiClient.post("/messages", messagePayload, {
+        await apiClient.post(`/chats/${this.chatId}/messages`, messagePayload, {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
           },
@@ -330,7 +337,7 @@ export default {
     },
     async deleteMessage(message) {
       try {
-        await apiClient.delete(`/messages/${message.id}`, {
+        await apiClient.delete(`/chats/${this.chatId}/messages/${message.id}`, {
           headers: {Authorization: `Bearer ${authStore.token}`},
         });
         this.animateMessageDelete(message.id);
@@ -380,31 +387,28 @@ export default {
     replyToMessage(message) {
       console.log("Replying to message:", message);
     },
+    async markMessageAsRead(messageId) {
+      try {
+        await apiClient.patch(`/chats/${this.chatId}/messages/${messageId}/read`, null, {
+          headers: {Authorization: `Bearer ${authStore.token}`},
+        });
+
+        // Update the message locally
+        const message = this.messages.find((msg) => msg.id === messageId);
+        if (message) {
+          message.readAt = new Date().toISOString();
+        }
+      } catch (error) {
+        console.error("Error marking message as read:", error.message);
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
 .chat-page {
-  max-height: calc(100vh - var(--header-height));
-}
-
-.chat-messages {
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-  padding-bottom: 20px;
-  position: relative; /* Required for the absolute loading indicator */
-}
-
-.loading-indicator {
-  z-index: 10; /* Ensure it appears above messages */
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.loading-indicator.fade {
-  opacity: 1;
-  transform: translateY(0);
+  max-height: calc(100vh - var(--header-height)) !important;
+  min-height: calc(100vh - var(--header-height)) !important;
 }
 </style>

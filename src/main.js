@@ -1,35 +1,51 @@
 import {createApp} from 'vue'; // Correct import for Vue 3
 import App from './App.vue';
-import router from './router';
+import router from './utils/router';
 import i18n from './utils/i18n'
-
-// Bootstrap imports
-import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap styles
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import 'bootstrap-icons/font/bootstrap-icons.css'; // Bootstrap icons
 
 // IntlTelInput imports
 import "intl-tel-input/styles";
 
+// Tailwind imports
+import './assets/css/tailwind.css';
+
 // PrimeVue imports
 import PrimeVue from 'primevue/config';
-import Lara from '@primevue/themes/lara';
-import ContextMenu from 'primevue/contextmenu';
+import Aura from '@primevue/themes/aura';
 import 'primeicons/primeicons.css'
+
+// PrimeVue components imports
+import ContextMenu from 'primevue/contextmenu';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
+import DropDown from 'primevue/select';
+import Textarea from 'primevue/textarea';
+import Dialog from 'primevue/dialog';
+import Image from 'primevue/image';
 
 const app = createApp(App);
 
-app.use(router);
-app.use(i18n);
-app.use(PrimeVue, {
-    ripple: true,
-    inputStyle: "outlined",
-    theme: {
-        preset: Lara,
-        options: {
-            darkModeSelector: false,
-        }
-    }
-});
-app.component(ContextMenu);
+app.use(router)
+    .use(i18n)
+    .use(PrimeVue, {
+        ripple: true,
+        inputStyle: "outlined",
+        theme: {
+            preset: Aura,
+            options: {
+                darkModeSelector: false,
+            }
+        },
+    });
+
+app.component('ContextMenu', ContextMenu)
+    .component('Button', Button)
+    .component('InputText', InputText)
+    .component('Message', Message)
+    .component('DropDown', DropDown)
+    .component('InputTextarea', Textarea)
+    .component('DialogWindow', Dialog)
+    .component('Image', Image);
+
 app.mount('#app');

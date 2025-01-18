@@ -1,76 +1,76 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center container my-5" style="height: 80vh">
-    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+  <div class="flex justify-center items-center container mx-auto my-10" style="height: 80vh">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
       <!-- Logo -->
-      <div class="text-center mb-3">
+      <div class="flex justify-center mb-4">
         <img
             :src="require('@/assets/logo.webp')"
             :alt="appName + ' Logo'"
-            class="img-fluid"
-            style="max-width: 100px;"
+            class="w-24 h-auto"
         />
       </div>
 
       <!-- Title and Subtitle -->
-      <div class="text-center mb-4">
-        <h3 class="fw-bold">{{ $t('login.title', { appName: appName }) }}</h3>
-        <p class="text-muted">{{ $t('login.subtitle') }}</p>
+      <div class="text-center mb-6">
+        <h3 class="text-xl font-bold text-gray-900">{{ $t('login.title', {appName: appName}) }}</h3>
+        <p class="text-gray-500">{{ $t('login.subtitle') }}</p>
       </div>
 
       <!-- Login Form -->
       <form @submit.prevent="login" novalidate>
         <!-- General Error -->
-        <div v-if="generalError" class="alert alert-danger" role="alert">
+        <Message
+            v-if="generalError"
+            severity="error"
+            :content="generalError"
+            class="mb-4"
+        >
           {{ generalError }}
-        </div>
+        </Message>
 
         <!-- Phone Input -->
-        <div class="mb-3">
-          <label for="phone" class="form-label">{{ $t('login.form.phone.label') }}</label>
+        <div class="mb-4">
           <PhoneInput
               v-model="phone"
-              :is-invalid="!!validationErrors.phone"
               :errorMessage="validationErrors.phone"
               @validityChange="phoneIsValid = $event"
           />
         </div>
 
         <!-- Password Input -->
-        <div class="mb-3">
-          <label for="password" class="form-label">{{ $t('login.form.password.label') }}</label>
-          <input
+        <div class="mb-4">
+          <GeneralInput
               v-model="password"
-              type="password"
-              class="form-control"
-              :class="{ 'is-invalid': validationErrors.password }"
-              id="password"
+              :label="$t('login.form.password.label')"
               :placeholder="$t('login.form.password.placeholder')"
-              required
+              :error-message="validationErrors.password"
+              id="password"
+              type="password"
           />
-          <div class="invalid-feedback">{{ validationErrors.password }}</div>
         </div>
 
         <!-- Login Button -->
-        <button
+        <Button
             type="submit"
-            class="btn btn-primary w-100 d-flex align-items-center justify-content-center"
+            :label="$t('login.button')"
+            icon="pi pi-sign-in"
+            class="w-full justify-center"
             :disabled="loading"
         >
-          <span v-if="!loading">{{ $t('login.button') }}</span>
-          <span v-else>
-            <i class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></i>
+          <template v-if="loading">
+            <i class="pi pi-spin pi-spinner"></i>
             {{ $t('loading') }}
-          </span>
-        </button>
+          </template>
+        </Button>
 
-        <div class="text-center mt-3">
-          <small class="text-muted">
+        <!-- Register Link -->
+        <div class="text-center mt-4">
+          <p class="text-sm text-gray-500">
             {{ $t('login.noAccount') }}
-            <router-link to="/register" class="text-primary text-decoration-none">{{
-                $t('register.button')
-              }}
+            <router-link to="/register" class="text-blue-500 hover:underline">
+              {{ $t('register.button') }}
             </router-link>
-          </small>
+          </p>
         </div>
       </form>
     </div>
@@ -80,12 +80,13 @@
 <script>
 import apiClient from "@/utils/api";
 import PhoneInput from "@/components/PhoneInput.vue";
-import { authStore } from "@/utils/auth";
+import {authStore} from "@/utils/auth";
+import GeneralInput from "@/components/GeneralInput.vue";
 
 export default {
-  components: { PhoneInput },
+  components: {GeneralInput, PhoneInput},
   setup() {
-    return { authStore };
+    return {authStore};
   },
   data() {
     return {
@@ -113,7 +114,7 @@ export default {
         if (response.data.success) {
           await authStore.login(response.data.data.token);
 
-          this.$router.push({ name: "HomePage" });
+          this.$router.push({name: "HomePage"});
         }
       } catch (error) {
         if (error.response?.data?.fields) {
@@ -130,8 +131,16 @@ export default {
 </script>
 
 <style scoped>
-.spinner-border {
-  width: 1rem;
-  height: 1rem;
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

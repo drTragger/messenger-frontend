@@ -1,53 +1,53 @@
 <template>
   <div id="app">
-    <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-      <div class="container">
-        <a href="/" class="navbar-brand d-flex align-items-center">
-          <img
+    <!-- Header -->
+    <header class="bg-gray-50 shadow-md flex items-center">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="/" class="flex items-center">
+          <Image
               :src="require('@/assets/logo.webp')"
               :alt="appName + ' Logo'"
-              width="30"
-              height="30"
-              class="me-2"
+              image-class="w-8 mr-2"
           />
-          <span>{{ appName }}</span>
+          <span class="text-lg font-bold">{{ appName }}</span>
         </a>
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
+        <Button
+            icon="pi pi-bars"
+            class="lg:hidden p-button-text text-gray-500 hover:text-gray-700"
+            @click="toggleNavbar"
+        />
+        <nav
+            :class="{
+            'flex flex-col lg:flex-row lg:items-center': true,
+            'hidden lg:flex': !isNavbarOpen,
+          }"
+            class="flex-grow lg:flex lg:justify-end space-y-2 lg:space-y-0 lg:space-x-6 mt-4 lg:mt-0 list-none"
         >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <!-- Language Switcher -->
-            <LanguageSwitcher v-if="!isAuthenticated" variant="navbar" />
+          <!-- Language Switcher -->
+          <li class="flex lg:flex-row items-center space-x-4" v-if="!isAuthenticated">
+            <LanguageSwitcher/>
+          </li>
 
-            <!-- Login/Logout Buttons -->
-            <li class="nav-item" v-if="!isAuthenticated">
-              <router-link to="/login" class="nav-link">
-                {{ $t("login.button") }}
-              </router-link>
-            </li>
-            <li class="nav-item" v-if="!isAuthenticated">
-              <router-link to="/register" class="nav-link">
-                {{ $t("register.button") }}
-              </router-link>
-            </li>
-            <li class="nav-item d-flex justify-content-center align-items-center" v-if="isAuthenticated">
-              <router-link to="/settings" class="nav-link d-flex align-items-center justify-content-center">
-                <i class="pi pi-cog" style="font-size: 1.5rem"></i>
-              </router-link>
-            </li>
-          </ul>
-        </div>
+          <!-- Login/Logout Links -->
+          <li v-if="!isAuthenticated">
+            <router-link to="/login" class="text-gray-600 hover:text-blue-600">
+              {{ $t("login.button") }}
+            </router-link>
+          </li>
+          <li v-if="!isAuthenticated">
+            <router-link to="/register" class="text-gray-600 hover:text-blue-600">
+              {{ $t("register.button") }}
+            </router-link>
+          </li>
+          <li v-if="isAuthenticated" class="flex items-center space-x-4 text-gray-600 hover:text-blue-600">
+            <router-link to="/settings" class="flex items-center justify-center">
+              <i class="pi pi-cog text-2xl"></i>
+            </router-link>
+          </li>
+        </nav>
       </div>
     </header>
+    <!-- Main Content -->
     <main>
       <router-view/>
     </main>
@@ -70,6 +70,7 @@ export default {
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
+      isNavbarOpen: false,
     };
   },
   created() {
@@ -102,57 +103,19 @@ export default {
         this.$i18n.locale = savedLanguage || 'uk';
       }
     },
+    toggleNavbar() {
+      this.isNavbarOpen = !this.isNavbarOpen;
+    },
   },
 };
 </script>
 
 <style>
-:root {
-  --header-height: 56px;
-}
-
 body {
   font-family: "Arial", sans-serif;
 }
 
 header {
   height: var(--header-height);
-}
-
-.navbar-brand span {
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-.navbar-toggler {
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-.navbar-toggler-icon {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.nav-item button {
-  margin-left: 10px;
-  font-size: 0.875rem; /* Adjust button font size */
-  display: inline-flex; /* Align icon and text */
-  align-items: center;
-}
-
-.nav-item button i {
-  font-size: 1rem; /* Adjust icon size */
-}
-
-.nav-item button:hover {
-  background-color: #f8d7da; /* Light red background on hover */
-  color: #721c24; /* Darker red text on hover */
-}
-
-#navbarNav li.dropdown-item {
-  cursor: pointer;
-}
-
-#navbarNav li.dropdown-item span {
-  font-size: 1.25rem; /* Increase flag size */
 }
 </style>

@@ -1,79 +1,88 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center container my-5" style="height: 80vh">
-    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+  <div class="flex justify-center items-center container mx-auto my-10" style="height: 80vh">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
       <!-- Logo -->
-      <div class="text-center mb-3">
+      <div class="flex justify-center mb-4">
         <img
             :src="require('@/assets/logo.webp')"
             :alt="appName + ' Logo'"
-            class="img-fluid"
-            style="max-width: 100px;"
+            class="w-24 h-auto"
         />
       </div>
 
       <!-- Title and Subtitle -->
-      <div class="text-center mb-4">
-        <h3 class="fw-bold">{{ $t('register.title') }}</h3>
-        <p class="text-muted">{{ $t('register.subtitle', { appName: appName }) }}</p>
+      <div class="text-center mb-6">
+        <h3 class="text-xl font-bold text-gray-900">{{ $t('register.title') }}</h3>
+        <p class="text-gray-500">{{ $t('register.subtitle', { appName: appName }) }}</p>
       </div>
 
       <!-- Register Form -->
       <form @submit.prevent="register" novalidate>
         <!-- General Error -->
-        <div v-if="generalError" class="alert alert-danger" role="alert">
+        <Message
+            v-if="generalError"
+            severity="error"
+            :content="generalError"
+            class="mb-4"
+        >
           {{ generalError }}
-        </div>
+        </Message>
 
         <!-- Username Input -->
-        <div class="mb-3">
-          <label for="username" class="form-label">{{ $t('register.form.username.label') }}</label>
-          <input
+        <div class="mb-4">
+          <GeneralInput
               v-model="username"
-              type="text"
-              class="form-control"
-              :class="{ 'is-invalid': validationErrors.username }"
-              id="username"
+              :label="$t('register.form.username.label')"
               :placeholder="$t('register.form.username.placeholder')"
-              required
+              :error-message="validationErrors.username"
+              id="username"
+              type="text"
           />
-          <div class="invalid-feedback">{{ validationErrors.username }}</div>
         </div>
 
         <!-- Phone Input -->
-        <div class="mb-3">
-          <label for="phone" class="form-label">{{ $t('register.form.phone.label') }}</label>
+        <div class="mb-4">
           <PhoneInput
               v-model="phone"
-              :is-invalid="!!validationErrors.phone"
               :errorMessage="validationErrors.phone"
               @validityChange="phoneIsValid = $event"
           />
         </div>
 
         <!-- Password Input -->
-        <div class="mb-3">
-          <label for="password" class="form-label">{{ $t('register.form.password.label') }}</label>
-          <input
+        <div class="mb-4">
+          <GeneralInput
               v-model="password"
-              type="password"
-              class="form-control"
-              :class="{ 'is-invalid': validationErrors.password }"
+              :label="$t('login.form.password.label')"
+              :placeholder="$t('login.form.password.placeholder')"
+              :error-message="validationErrors.password"
               id="password"
-              :placeholder="$t('register.form.password.placeholder')"
-              required
+              type="password"
           />
-          <div class="invalid-feedback">{{ validationErrors.password }}</div>
         </div>
 
         <!-- Register Button -->
-        <button type="submit" class="btn btn-primary w-100">{{ $t('register.button') }}</button>
-        <div class="text-center mt-3">
-          <small class="text-muted">
+        <Button
+            type="submit"
+            :label="$t('register.button')"
+            icon="pi pi-user-plus"
+            class="w-full justify-center"
+            :disabled="loading"
+        >
+          <template v-if="loading">
+            <i class="pi pi-spin pi-spinner"></i>
+            {{ $t('loading') }}
+          </template>
+        </Button>
+
+        <!-- Login Link -->
+        <div class="text-center mt-4">
+          <p class="text-sm text-gray-500">
             {{ $t('register.haveAccount') }}
-            <router-link to="/login" class="text-primary text-decoration-none">
+            <router-link to="/login" class="text-blue-500 hover:underline">
               {{ $t('login.button') }}
             </router-link>
-          </small>
+          </p>
         </div>
       </form>
     </div>
@@ -83,9 +92,10 @@
 <script>
 import apiClient from "@/utils/api";
 import PhoneInput from "@/components/PhoneInput.vue";
+import GeneralInput from "@/components/GeneralInput.vue";
 
 export default {
-  components: {PhoneInput},
+  components: {GeneralInput, PhoneInput},
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
@@ -95,11 +105,14 @@ export default {
       phoneIsValid: null,
       validationErrors: {}, // Object to store validation errors
       generalError: null, // For non-field-specific errors
+      loading: false,
     };
   },
   methods: {
     async register() {
       this.validationErrors = {}; // Clear previous errors
+      this.loading = true;
+
       try {
         if (!this.phoneIsValid) {
           this.validationErrors.phone = this.$t('validation.phone.invalid');
@@ -123,19 +136,10 @@ export default {
         } else {
           this.generalError = this.$t('errors.unexpected');
         }
+      } finally {
+        this.loading = false;
       }
     },
   },
 };
 </script>
-
-<style scoped>
-.form-label {
-  margin-bottom: 5px;
-  display: block;
-}
-
-.alert {
-  padding: 0.75rem 1.25rem;
-}
-</style>

@@ -20,6 +20,10 @@ export function chatPageWsHandler(context, data) {
             handleCPDeleteMessage(context, data.message);
             break;
 
+        case WebSocketEvents.READ_MESSAGE:
+            handleCPReadMessage(context, data.message);
+            break;
+
         case WebSocketEvents.USER_STATUS_CHANGE:
             handleCPUserStatusChange(context, data);
             break;
@@ -60,6 +64,18 @@ function handleCPEditMessage(context, message) {
 
 function handleCPDeleteMessage(context, message) {
     context.animateMessageDelete(message.deleted.id);
+}
+
+function handleCPReadMessage(context, message) {
+    if (message?.chatId !== context.chatId && message?.senderId !== context.authStore.user.id) return;
+
+    const index = context.messages.findIndex((m) => m.id === message.id);
+    if (index !== -1) {
+        context.messages[index] = {
+            ...context.messages[index],
+            readAt: message.readAt,
+        };
+    }
 }
 
 function handleCPUserStatusChange(context, {userId, isOnline, lastSeen}) {
