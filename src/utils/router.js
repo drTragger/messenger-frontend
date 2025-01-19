@@ -5,7 +5,8 @@ import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import ChatPage from '@/views/ChatPage.vue'
 import {authStore} from "@/utils/auth";
-import UserSettings from "@/views/UserSettings.vue";
+import SettingsPage from "@/views/SettingsPage.vue";
+import PhoneVerificationPage from "@/views/PhoneVerificationPage.vue";
 
 const routes = [
     {
@@ -28,8 +29,8 @@ const routes = [
     },
     {
         path: '/settings',
-        name: 'UserSettings',
-        component: UserSettings,
+        name: 'SettingsPage',
+        component: SettingsPage,
         meta: {
             title: i18n.global.t('settings.title'),
             requiresAuth: true
@@ -48,7 +49,15 @@ const routes = [
         name: 'RegisterPage',
         component: RegisterPage,
         meta: {
-            title: 'RegisterPage',
+            title: i18n.global.t('register.title'),
+        },
+    },
+    {
+        path: '/phone-verify',
+        name: 'PhoneVerificationPage',
+        component: PhoneVerificationPage,
+        meta: {
+            title: i18n.global.t('phoneVerify.title'),
         },
     }
 ]

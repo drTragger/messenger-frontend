@@ -1,12 +1,12 @@
 <template>
   <div class="flex justify-center items-center container mx-auto my-10" style="height: 80vh">
-    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
+    <div class="bg-white shadow-2xl rounded-lg p-6 w-full max-w-sm">
       <!-- Logo -->
       <div class="flex justify-center mb-4">
-        <img
+        <Image
             :src="require('@/assets/logo.webp')"
             :alt="appName + ' Logo'"
-            class="w-24 h-auto"
+            imageClass="w-24 h-auto"
         />
       </div>
 

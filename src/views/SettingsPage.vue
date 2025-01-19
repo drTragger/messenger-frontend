@@ -19,8 +19,7 @@
           <AvatarPic
               :profilePicture="authStore.user?.profilePicture"
               :isOnline="false"
-              class="cursor-pointer"
-              @click="triggerFileInput"
+              :preview="true"
           />
           <input
               type="file"
@@ -31,7 +30,13 @@
         </div>
         <div>
           <h5 class="text-lg font-semibold">{{ $t('settings.profilePicture.title') }}</h5>
-          <p class="text-sm text-gray-500">{{ $t('settings.profilePicture.hint') }}</p>
+          <p
+              class="text-sm text-blue-500 hover:underline cursor-pointer flex items-center space-x-1"
+              @click="triggerFileInput"
+          >
+            <i class="pi pi-pencil"></i>
+            <span>{{ $t('settings.profilePicture.hint') }}</span>
+          </p>
         </div>
       </div>
     </div>

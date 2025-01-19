@@ -346,7 +346,6 @@ export default {
       }
     },
     copyToClipboard(text) {
-      console.log(text);
       if (!navigator.clipboard) {
         // Fallback for older browsers
         const textArea = document.createElement("textarea");

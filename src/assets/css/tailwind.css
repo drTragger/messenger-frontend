@@ -135,6 +135,35 @@
     cursor: not-allowed !important;
 }
 
+/* Transparent Button */
+.p-button-transparent {
+    background-color: transparent !important;
+    color: var(--color-blue-500) !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 500 !important;
+    transition: color 0.2s, transform 0.1s !important;
+}
+
+.p-button-transparent:hover {
+    color: var(--color-blue-600) !important;
+    transform: scale(1.02) !important;
+    text-decoration: underline !important;
+    background-color: transparent !important;
+}
+
+.p-button-transparent:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--color-blue-500-alpha) !important;
+}
+
+.p-button-transparent:disabled {
+    color: var(--color-gray-400) !important;
+    cursor: not-allowed !important;
+    text-decoration: none !important;
+    background-color: transparent !important;
+}
+
 .p-select-option-selected {
     background-color: rgba(var(--color-blue-300-rgb), 0.25) !important;
     color: var(--color-blue-500) !important;
@@ -171,4 +200,8 @@
 /* Hover State */
 .p-textarea:hover {
     border-color: var(--color-blue-300) !important;
+}
+
+.rounded-image:hover > .p-image-preview-mask {
+    border-radius: 50px !important;
 }

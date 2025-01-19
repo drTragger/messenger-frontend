@@ -11,20 +11,9 @@
           />
           <span class="text-lg font-bold">{{ appName }}</span>
         </a>
-        <Button
-            icon="pi pi-bars"
-            class="lg:hidden p-button-text text-gray-500 hover:text-gray-700"
-            @click="toggleNavbar"
-        />
-        <nav
-            :class="{
-            'flex flex-col lg:flex-row lg:items-center': true,
-            'hidden lg:flex': !isNavbarOpen,
-          }"
-            class="flex-grow lg:flex lg:justify-end space-y-2 lg:space-y-0 lg:space-x-6 mt-4 lg:mt-0 list-none"
-        >
+        <nav class="flex flex-row items-center flex-grow justify-end space-y-0 space-x-6 mt-0 list-none">
           <!-- Language Switcher -->
-          <li class="flex lg:flex-row items-center space-x-4" v-if="!isAuthenticated">
+          <li class="flex flex-row items-center space-x-4" v-if="!isAuthenticated">
             <LanguageSwitcher/>
           </li>
 
@@ -70,7 +59,6 @@ export default {
   data() {
     return {
       appName: process.env.VUE_APP_NAME,
-      isNavbarOpen: false,
     };
   },
   created() {
@@ -102,9 +90,6 @@ export default {
       if (savedLanguage) {
         this.$i18n.locale = savedLanguage || 'uk';
       }
-    },
-    toggleNavbar() {
-      this.isNavbarOpen = !this.isNavbarOpen;
     },
   },
 };

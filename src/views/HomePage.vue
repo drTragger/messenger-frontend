@@ -33,6 +33,7 @@
         <!-- Time -->
         <small class="text-gray-400 text-sm">
           {{ formatLastSeen(chat?.lastMessage?.createdAt) }}
+          <i v-if="chat?.lastMessage && chat.lastMessage.recipientId === getChatPartner(chat).id" class="pi pi-check ml-1.5 text-xs" :class="{'pi-check-circle': chat.lastMessage.readAt}"></i>
         </small>
       </div>
     </div>

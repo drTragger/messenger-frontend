@@ -104,6 +104,10 @@ export function homePageWsHandler(context, data) {
             handleHPDeleteMessage(context, data.message);
             break;
 
+        case WebSocketEvents.READ_MESSAGE:
+            handleHPReadMessage(context, data.message);
+            break;
+
         case WebSocketEvents.USER_STATUS_CHANGE:
             handleHPUserStatusChange(context, data);
             break;
@@ -177,6 +181,19 @@ function handleHPDeleteMessage(context, message) {
         const updatedChat = {...context.chats[chatIndex]};
 
         updatedChat.lastMessage = message.last;
+
+        context.chats.splice(chatIndex, 1);
+        context.chats.unshift(updatedChat);
+    }
+}
+
+function handleHPReadMessage(context, message) {
+    const chatIndex = context.chats.findIndex((chat) => chat.lastMessage?.id === message.id);
+
+    if (chatIndex !== -1) {
+        const updatedChat = {...context.chats[chatIndex]};
+
+        updatedChat.lastMessage.readAt = message.readAt;
 
         context.chats.splice(chatIndex, 1);
         context.chats.unshift(updatedChat);

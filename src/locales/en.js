@@ -34,6 +34,16 @@ export default {
             },
         },
     },
+    phoneVerify: {
+        title: "Phone Verification",
+        subtitle: "Let's get in touch!",
+        instructions: "Enter the code sent to",
+        resend: "Resend Code",
+        resendHint: "You can resend the code in {count} second. | You can resend the code in {count} seconds.",
+        submit: "Verify Code",
+        success: "Phone successfully verified.",
+        error: "Invalid or expired code. Please try again."
+    },
     home: {
         subtitle: 'Your personal messaging space',
     },
@@ -104,6 +114,7 @@ export default {
         logout: 'Log out of the system'
     },
     validation: {
+        required: 'Please fill this field',
         phone: {
             invalid: 'The phone number is invalid.',
         },

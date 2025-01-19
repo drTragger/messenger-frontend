@@ -34,6 +34,15 @@ export default {
             },
         },
     },
+    phoneVerify: {
+        title: "Weryfikacja Telefonu",
+        subtitle: "Wpisz kod wysłany na numer",
+        resend: "Wyślij Kod Ponownie",
+        resendHint: "Możesz wysłać kod ponownie za {count} sekundę. | Możesz wysłać kod ponownie za {count} sekund.",
+        submit: "Zweryfikuj Kod",
+        success: "Telefon został pomyślnie zweryfikowany.",
+        error: "Kod jest nieprawidłowy lub wygasł. Spróbuj ponownie."
+    },
     home: {
         subtitle: 'Twoja osobista przestrzeń do rozmów',
     },
