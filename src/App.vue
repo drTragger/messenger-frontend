@@ -38,6 +38,7 @@
     </header>
     <!-- Main Content -->
     <main>
+      <Toast/>
       <router-view/>
     </main>
   </div>

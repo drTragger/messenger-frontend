@@ -44,24 +44,41 @@
     <!-- Personal Information Section -->
     <div class="bg-white shadow-md rounded-lg p-4">
       <h5 class="text-lg font-semibold mb-4">{{ $t('settings.personalInfo.title') }}</h5>
-      <form @submit.prevent="savePersonalInfo">
+      <form @submit.prevent="savePersonalInfo" novalidate>
+        <!-- General Error -->
+        <Message
+            v-if="generalError"
+            severity="error"
+            :content="generalError"
+            class="mb-4"
+        >
+          {{ generalError }}
+        </Message>
+
         <div class="mb-4">
-          <label for="name-of-user" class="block text-sm font-medium text-gray-700">
-            {{ $t('settings.personalInfo.name.label') }}
-          </label>
-          <InputText
-              v-model="userName"
-              id="name-of-user"
-              :placeholder="$t('settings.personalInfo.name.placeholder')"
-              autocomplete="new-password"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-              class="w-full mt-1 p-inputtext border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          <GeneralInput
+              v-model="firstName"
+              :label="$t('settings.personalInfo.firstName.label')"
+              :placeholder="$t('settings.personalInfo.firstName.placeholder')"
+              :error-message="validationErrors.firstname"
+              id="name-first"
+              type="text"
           />
         </div>
+
+        <div class="mb-4">
+          <GeneralInput
+              v-model="lastName"
+              :label="$t('settings.personalInfo.lastName.label')"
+              :placeholder="$t('settings.personalInfo.lastName.placeholder')"
+              :error-message="validationErrors.lastname"
+              id="name-last"
+              type="text"
+          />
+        </div>
+
         <div class="text-right">
-          <Button class="p-button p-button-primary">
+          <Button type="submit" class="p-button p-button-primary">
             {{ $t('settings.personalInfo.button') }}
           </Button>
         </div>
@@ -99,34 +116,41 @@
 </template>
 
 <script>
-import {authStore, logoutUser} from "@/utils/auth";
-import apiClient from "@/utils/api";
-import {getWebSocketManager} from "@/utils/websocket/websocket";
 import {useI18n} from "vue-i18n";
-import AvatarPic from "@/components/AvatarPic.vue";
-import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
+import {useToast} from "primevue";
 import Cropper from "cropperjs";
-import "cropperjs/dist/cropper.css";
+import apiClient from "@/utils/api";
+import {authStore, logoutUser} from "@/utils/auth";
+import {getWebSocketManager} from "@/utils/websocket/websocket";
+import AvatarPic from "@/components/AvatarPic.vue";
+import GeneralInput from "@/components/GeneralInput.vue";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import PageHeader from "@/components/PageHeader.vue";
+import "cropperjs/dist/cropper.css";
 
 export default {
-  components: {PageHeader, LanguageSwitcher, AvatarPic},
+  components: {GeneralInput, PageHeader, LanguageSwitcher, AvatarPic},
   setup() {
     const {locale} = useI18n();
+    const toast = useToast();
     return {
       authStore,
       apiClient,
       locale,
+      toast,
     };
   },
   data() {
     return {
-      userName: "",
+      firstName: "",
+      lastName: "",
       language: null,
       isCropperVisible: false,
       cropper: null,
       imagePreview: null, // The selected image preview
       croppedImage: null, // The final cropped image blob
+      validationErrors: {},
+      generalError: null,
     };
   },
   async created() {
@@ -141,7 +165,8 @@ export default {
       const userData = response.data.data;
 
       authStore.user = userData;
-      this.userName = userData.username;
+      this.firstName = userData.firstName;
+      this.lastName = userData.lastName;
     } catch (error) {
       console.error("Error fetching user data:", error.response?.data || error.message);
     }
@@ -212,14 +237,55 @@ export default {
             authStore.user.profilePicture = response.data.data.profilePicture;
 
             this.cancelCropper();
+
+            this.toast.add({
+              severity: 'success',
+              summary: this.$t('toast.summary.success'),
+              detail: this.$t('settings.profilePicture.success'),
+              life: 3000,
+            });
           } catch (error) {
-            console.error("Error uploading profile picture:", error.response?.data || error.message);
+            this.toast.add({
+              severity: 'error',
+              summary: this.$t('toast.summary.error'),
+              detail: error.response?.data || error.message,
+              life: 3000,
+            });
           }
         });
       }
     },
-    savePersonalInfo() {
-      console.log(`Name updated: ${this.userName}`);
+    async savePersonalInfo() {
+      if (this.firstName.length < 1) {
+        this.validationErrors.firstname = this.$t('validation.required');
+        return;
+      }
+      try {
+        const response = await apiClient.patch("/users/personal-info", {
+          firstName: this.firstName,
+          lastName: this.lastName
+        }, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+
+        authStore.user.firstName = response.data.data.firstName;
+        authStore.user.lastName = response.data.data.lastName;
+
+        this.toast.add({
+          severity: 'success',
+          summary: this.$t('toast.summary.success'),
+          detail: this.$t('settings.personalInfo.success'),
+          life: 3000,
+        });
+      } catch (error) {
+        if (error.response?.data?.fields) {
+          this.validationErrors = error.response.data.fields;
+        } else {
+          this.generalError = error.response?.data?.message || this.$t("errors.unexpected");
+        }
+      }
     },
     async logout() {
       await logoutUser(this.$router);

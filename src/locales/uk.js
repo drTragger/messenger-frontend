@@ -101,13 +101,19 @@ export default {
             title: 'Світлина профілю',
             hint: 'Клікни, аби закачати нову світлину до профілю',
             resize: "Відміряй світлину профілю",
+            success: 'Світлину профілю успішно оновлено.'
         },
         personalInfo: {
             title: 'Особисті дані',
             button: 'Зберегти зміни',
-            name: {
+            success: 'Особисті дані успішно оновлено.',
+            firstName: {
                 label: 'Імʼя',
                 placeholder: 'Введи своє імʼя',
+            },
+            lastName: {
+                label: 'Прізвище',
+                placeholder: 'Введи своє прізвище',
             },
         },
         language: 'Вибери свою мову',
@@ -121,6 +127,12 @@ export default {
     },
     errors: {
         unexpected: 'Сталася біда. Спробуйте знову.',
+    },
+    toast: {
+        summary: {
+            success: 'Успіх',
+            error: 'Помилка',
+        },
     },
     loading: "Завантажую...",
     notAvailable: "Недоступно",

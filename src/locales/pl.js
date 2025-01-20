@@ -104,7 +104,7 @@ export default {
         personalInfo: {
             title: 'Informacje osobiste',
             button: 'Zapisz zmiany',
-            name: {
+            firstName: {
                 label: 'Imię',
                 placeholder: 'Wprowadź swoje imię',
             },

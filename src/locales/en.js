@@ -101,13 +101,19 @@ export default {
             title: 'Profile picture',
             hint: 'Click to upload a new profile picture',
             resize: "Resize Profile Picture",
+            success: 'Profile picture updated successfully.'
         },
         personalInfo: {
             title: 'Personal information',
             button: 'Save changes',
-            name: {
-                label: 'Name',
-                placeholder: 'Enter your name',
+            success: 'Personal information updated successfully.',
+            firstName: {
+                label: 'First Name',
+                placeholder: 'Enter your first name',
+            },
+            lastName: {
+                label: 'Last Name',
+                placeholder: 'Enter your last name',
             },
         },
         language: 'Choose your language',
@@ -121,6 +127,12 @@ export default {
     },
     errors: {
         unexpected: 'An unexpected error occurred. Please try again.',
+    },
+    toast: {
+        summary: {
+            success: 'Success',
+            error: 'Error',
+        },
     },
     loading: "Loading...",
     notAvailable: "Not available",

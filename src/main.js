@@ -13,6 +13,7 @@ import './assets/css/tailwind.css';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import 'primeicons/primeicons.css'
+import ToastService from 'primevue/toastservice';
 
 // PrimeVue components imports
 import ContextMenu from 'primevue/contextmenu';
@@ -23,6 +24,7 @@ import DropDown from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import Dialog from 'primevue/dialog';
 import Image from 'primevue/image';
+import Toast from 'primevue/toast';
 
 const app = createApp(App);
 
@@ -37,7 +39,8 @@ app.use(router)
                 darkModeSelector: false,
             }
         },
-    });
+    })
+    .use(ToastService);
 
 app.component('ContextMenu', ContextMenu)
     .component('Button', Button)
@@ -46,6 +49,7 @@ app.component('ContextMenu', ContextMenu)
     .component('DropDown', DropDown)
     .component('InputTextarea', Textarea)
     .component('DialogWindow', Dialog)
-    .component('Image', Image);
+    .component('Image', Image)
+    .component('Toast', Toast);
 
 app.mount('#app');
