@@ -9,17 +9,17 @@
           @click="goBack"
       />
       <!-- Avatar and User Info -->
-      <AvatarPic :profilePicture="profilePicture"/>
+      <AvatarPic :user="user" :profilePicture="user?.profilePicture"/>
       <div>
         <h5 class="text-lg font-semibold text-gray-800 mb-0">
-          {{ username || $t('chat.title') }}
+          {{ getUserName() || $t('chat.title') }}
         </h5>
         <small class="text-gray-500">
-          <span v-if="isOnline" class="text-blue-500">
+          <span v-if="user?.isOnline" class="text-blue-500">
             {{ $t('chat.online') }}
           </span>
           <span v-else>
-            {{ $t('chat.lastSeen') }}: {{ lastSeen ? formatLastSeen(lastSeen) : $t('notAvailable') }}
+            {{ $t('chat.lastSeen') }}: {{ user?.lastSeen ? formatLastSeen(user.lastSeen) : $t('notAvailable') }}
           </span>
         </small>
       </div>
@@ -40,15 +40,23 @@ import AvatarPic from "@/components/AvatarPic.vue";
 export default {
   components: {AvatarPic},
   props: {
-    username: String,
-    profilePicture: String,
-    isOnline: Boolean,
-    lastSeen: String,
+    user: {type: JSON, required: true},
   },
   methods: {
     formatLastSeen,
     goBack() {
       this.$router.push({ name: "HomePage" });
+    },
+    getUserName() {
+      if (this.user?.firstName) {
+        let username = '';
+        username = this.user.firstName;
+        if (this.user?.lastName) {
+          username += ' ' + this.user.lastName;
+        }
+        return username;
+      }
+      return this.user?.username;
     },
   },
 };

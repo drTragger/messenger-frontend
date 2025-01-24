@@ -58,12 +58,27 @@ export default {
         },
         lastMessage: {
             empty: 'No messages yet',
+            attachmentOnly: 'Attachment',
         },
         message: {
             type: "Type your message...",
             loading: "Loading messages...",
             edited: "Edited",
             notification: "New message from {username}"
+        },
+        attachments: {
+            caption: 'Add a caption...',
+            add: 'Add',
+            popover: {
+                imageVideo: 'Upload Image/Video',
+                file: 'Upload File',
+                formats: 'Supports {formats} formats',
+            },
+            preview: 'Preview uploaded files',
+            empty: 'No files selected',
+            video: {
+                noSupport: 'Your browser does not support the video tag.',
+            }
         },
         emoji: {
             placeholder: "Search emoji",
@@ -81,10 +96,14 @@ export default {
             }
         },
         contextMenu: {
+            readAt: {
+                today: 'Today at {time}',
+                yesterday: 'Yesterday at {time}',
+            },
             copy: "Copy",
             edit: "Edit",
             delete: "Delete",
-            reply: "Reply"
+            reply: "Reply",
         }
     },
     messages: {
@@ -127,6 +146,10 @@ export default {
     },
     errors: {
         unexpected: 'An unexpected error occurred. Please try again.',
+        message: {
+            send: 'Failed to send a message. Please, try again.',
+            edit: 'Failed to edit a message. Please, try again.',
+        },
     },
     toast: {
         summary: {

@@ -25,6 +25,7 @@
               type="file"
               ref="profilePictureInput"
               class="hidden"
+              accept="image/*"
               @change="showCropper"
           />
         </div>

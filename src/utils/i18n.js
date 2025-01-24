@@ -18,3 +18,19 @@ const i18n = createI18n({
 });
 
 export default i18n;
+
+export function isEmoji(charCode) {
+    return (
+        (charCode >= 0x1f300 && charCode <= 0x1f5ff) || // Miscellaneous Symbols and Pictographs
+        (charCode >= 0x1f600 && charCode <= 0x1f64f) || // Emoticons
+        (charCode >= 0x1f680 && charCode <= 0x1f6ff) || // Transport and Map Symbols
+        (charCode >= 0x1f700 && charCode <= 0x1f77f) || // Alchemical Symbols
+        (charCode >= 0x1f780 && charCode <= 0x1f7ff) || // Geometric Shapes Extended
+        (charCode >= 0x1f800 && charCode <= 0x1f8ff) || // Supplemental Arrows-C
+        (charCode >= 0x1f900 && charCode <= 0x1f9ff) || // Supplemental Symbols and Pictographs
+        (charCode >= 0x1fa00 && charCode <= 0x1fa6f) || // Chess Symbols
+        (charCode >= 0x1fa70 && charCode <= 0x1faff) || // Symbols and Pictographs Extended-A
+        (charCode >= 0x2600 && charCode <= 0x26ff) || // Miscellaneous Symbols
+        (charCode >= 0x2700 && charCode <= 0x27bf)    // Dingbats
+    );
+}

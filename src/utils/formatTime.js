@@ -1,3 +1,5 @@
+import i18n from "@/utils/i18n";
+
 export function formatTime(dateString, formatOptions = {}) {
     if (!dateString) return "";
 
@@ -56,6 +58,45 @@ export function formatLastSeen(lastSeen) {
         hour: "2-digit",
         minute: "2-digit",
     });
+}
+
+export function formatReadAt(dateString) {
+    if (!dateString) return "";
+
+    const inputDate = new Date(dateString);
+    const today = new Date();
+
+    // Handle invalid dates
+    if (isNaN(inputDate.getTime())) return "Invalid date";
+
+    const isToday =
+        inputDate.getDate() === today.getDate() &&
+        inputDate.getMonth() === today.getMonth() &&
+        inputDate.getFullYear() === today.getFullYear();
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const isYesterday =
+        inputDate.getDate() === yesterday.getDate() &&
+        inputDate.getMonth() === yesterday.getMonth() &&
+        inputDate.getFullYear() === yesterday.getFullYear();
+
+    const time = formatTime(dateString, { hour: "2-digit", minute: "2-digit" });
+
+    if (isToday) {
+        return i18n.global.t('chat.contextMenu.readAt.today', {time: time});
+    } else if (isYesterday) {
+        return i18n.global.t('chat.contextMenu.readAt.yesterday', {time: time});
+    } else {
+        return formatTime(dateString, {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    }
 }
 
 export function isCurrentYear(dateString) {

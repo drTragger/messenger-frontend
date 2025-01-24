@@ -25,6 +25,9 @@ import Textarea from 'primevue/textarea';
 import Dialog from 'primevue/dialog';
 import Image from 'primevue/image';
 import Toast from 'primevue/toast';
+import Tooltip from 'primevue/tooltip';
+import ProgressSpinner from "primevue/progressspinner";
+import Avatar from "primevue/avatar";
 
 const app = createApp(App);
 
@@ -50,6 +53,10 @@ app.component('ContextMenu', ContextMenu)
     .component('InputTextarea', Textarea)
     .component('DialogWindow', Dialog)
     .component('Image', Image)
-    .component('Toast', Toast);
+    .component('Toast', Toast)
+    .component('Avatar', Avatar)
+    .component('ProgressSpinner', ProgressSpinner);
+
+app.directive('tooltip', Tooltip);
 
 app.mount('#app');

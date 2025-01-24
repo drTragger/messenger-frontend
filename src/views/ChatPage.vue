@@ -1,26 +1,29 @@
 <template>
   <div class="chat-page flex flex-col">
     <!-- Chat Header -->
-    <ChatHeader
-        :username="chatPartner?.username"
-        :profilePicture="chatPartner?.profilePicture"
-        :isOnline="chatPartner?.isOnline"
-        :lastSeen="chatPartner?.lastSeen"
-    />
+    <ChatHeader v-if="chatPartner" :user="chatPartner"/>
 
     <!-- Messages Section -->
-    <div ref="messagesContainer" class="flex-grow overflow-auto py-3 px-5 relative bg-white flex flex-col">
+    <div ref="messagesContainer" class="messages-container flex-grow overflow-auto py-3 px-5 relative bg-white flex flex-col">
       <!-- Loading Indicator -->
       <div
           v-if="loading"
-          class="absolute inset-x-0 top-0 flex items-center justify-center bg-white bg-opacity-75 py-3"
+          class="absolute inset-x-0 top-0 flex items-center justify-center bg-white bg-opacity-75 py-3 z-50"
       >
-        <div class="animate-spin h-5 w-5 border-4 border-gray-600 border-t-transparent rounded-full"></div>
-        <span class="ml-2 text-gray-600">{{ $t('chat.message.loading') }}</span>
+        <div class="flex items-center space-x-2">
+          <ProgressSpinner
+              style="width: 20px; height: 20px"
+              strokeWidth="4"
+              fill="transparent"
+              animationDuration="1s"
+              aria-label="Loading"
+          />
+          <span class="text-gray-600 text-sm">{{ $t('chat.message.loading') }}</span>
+        </div>
       </div>
 
       <!-- Messages Grouped by Date -->
-      <div v-if="!loading && this.messages.length">
+      <div v-if="this.messages.length">
         <template v-for="(group, date) in groupedMessages" :key="date">
           <!-- Date Header -->
           <div class="text-center my-4 text-sm text-gray-500">
@@ -47,7 +50,9 @@
       </div>
 
       <!-- No Messages Container -->
-      <NoMessages v-else class="hidden" ref="noMessages" :title="$t('messages.empty.title')" :subtitle="$t('messages.empty.subtitle')"/>
+      <NoMessages v-else class="hidden" ref="noMessages" :title="$t('messages.empty.title')"
+                  :subtitle="$t('messages.empty.subtitle')"/>
+      <ScrollBottom target=".messages-container" :threshold="300"/>
     </div>
 
     <!-- Context Menu -->
@@ -63,6 +68,19 @@
       </template>
     </ContextMenu>
 
+    <!-- Reply Preview Section -->
+    <div v-if="replyingToMessage" class="reply-preview flex items-center px-4 py-2 bg-gray-100 border-t border-gray-200">
+      <div class="flex-grow">
+        <p class="text-sm text-gray-700 font-medium">{{ replyingToMessage.sender?.username }}</p>
+        <p class="text-sm text-gray-500 truncate">{{ replyingToMessage.content }}</p>
+      </div>
+      <Button
+          icon="pi pi-times"
+          class="p-button-sm p-button-text text-gray-500 hover:text-gray-700"
+          @click="cancelReply"
+      />
+    </div>
+
     <!-- Input Section -->
     <MessageInput
         @send-message="sendMessage"
@@ -73,11 +91,21 @@
 </template>
 
 <script>
-import apiClient from "@/utils/api";
 import {authStore} from "@/utils/auth";
 import {getWebSocketManager} from "@/utils/websocket/websocket";
 import {chatPageWsHandler} from "@/utils/websocket/wsHandlers";
 import {formatTime, isCurrentYear} from "@/utils/formatTime";
+import {
+  fetchChatDetails,
+  fetchMessages,
+  sendMessageApi,
+  editMessageApi,
+  deleteMessageApi,
+  animateMessageDelete,
+  markMessageAsReadApi
+} from "@/services/chatService";
+import {myMessageContextMenuItems, partnerMessageContextMenuItems} from "@/utils/contextMenu";
+import {useToast} from "primevue";
 import _ from "lodash";
 import MessageBubble from "@/components/MessageBubble.vue";
 import MessageInput from "@/components/MessageInput.vue";
@@ -85,11 +113,13 @@ import ChatHeader from "@/components/ChatHeader.vue";
 import ContextMenu from "primevue/contextmenu";
 import Badge from "primevue/badge";
 import NoMessages from "@/components/NoMessages.vue";
+import ScrollBottom from "@/components/ScrollBottom.vue";
 
 export default {
-  components: {NoMessages, ChatHeader, MessageInput, MessageBubble, ContextMenu, Badge},
+  components: {ScrollBottom, NoMessages, ChatHeader, MessageInput, MessageBubble, ContextMenu, Badge},
   setup() {
-    return {authStore};
+    const toast = useToast();
+    return {authStore, toast};
   },
   data() {
     return {
@@ -103,6 +133,7 @@ export default {
       allMessagesLoaded: false,
       loading: false,
       editingMessage: null,
+      replyingToMessage: null,
       contextMenuItems: [],
     };
   },
@@ -124,7 +155,7 @@ export default {
     this.wsManager.connect();
     this.wsManager.addMessageHandler(this.handleWebSocketMessage);
 
-    await this.fetchChatDetails();
+    this.chatPartner = await this.fetchChatDetails(this.chatId, authStore.user.id);
     await this.fetchMessages();
 
     await this.$nextTick();
@@ -145,7 +176,7 @@ export default {
     },
     groupedMessages() {
       return this.messages.reduce((groups, message) => {
-        const date = new Date(message.createdAt).toDateString(); // Generate a valid date string
+        const date = new Date(message.createdAt).toDateString();
         if (!groups[date]) groups[date] = [];
         groups[date].push(message);
         return groups;
@@ -155,34 +186,36 @@ export default {
   methods: {
     formatTime,
     isCurrentYear,
+    fetchChatDetails,
     handleWebSocketMessage(message) {
       chatPageWsHandler(this, message);
     },
-    async fetchChatDetails() {
-      try {
-        const response = await apiClient.get(`/chats/${this.chatId}`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
-        });
-
-        const chat = response.data.data;
-        this.chatPartner = chat.user1.id === this.currentUserId ? chat.user2 : chat.user1;
-
-        // Fetch online status and last seen for the chat partner
-        const statusResponse = await apiClient.get(`/users/online/${this.chatPartner.id}`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
-        });
-
-        if (!statusResponse.data?.data) return
-
-        this.chatPartner.isOnline = statusResponse.data.data.isOnline;
-      } catch (error) {
-        console.error("Error fetching chat details or online status:", error.message);
+    replyToMessage(message) {
+      this.replyingToMessage = message;
+    },
+    cancelReply() {
+      this.replyingToMessage = null;
+    },
+    prepareForEdit(message) {
+      this.editingMessage = message;
+    },
+    cancelEdit() {
+      this.editingMessage = null;
+    },
+    scrollToBottom() {
+      const container = this.$refs.messagesContainer;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
       }
     },
+    handleScroll: _.debounce(function () {
+      const container = this.$refs.messagesContainer;
+
+      // If near the top and messages are not fully loaded
+      if (container.scrollTop <= 100 && !this.allMessagesLoaded) {
+        this.fetchMessages();
+      }
+    }, 100),
     async fetchMessages(limit = this.limit) {
       if (this.loading || this.allMessagesLoaded) return;
 
@@ -191,12 +224,7 @@ export default {
       const previousScrollHeight = container.scrollHeight;
 
       try {
-        const response = await apiClient.get(`/chats/${this.chatId}/messages`, {
-          params: {limit, offset: this.messages.length},
-          headers: {Authorization: `Bearer ${authStore.token}`},
-        });
-
-        const newMessages = response.data.data;
+        const newMessages = await fetchMessages(this.chatId, this.messages.length, this.limit);
 
         if (newMessages.length < limit) {
           this.allMessagesLoaded = true;
@@ -219,33 +247,22 @@ export default {
         this.loading = false;
       }
     },
-    handleScroll: _.debounce(function () {
-      const container = this.$refs.messagesContainer;
-
-      // If near the top and messages are not fully loaded
-      if (container.scrollTop <= 100 && !this.allMessagesLoaded) {
-        this.fetchMessages();
-      }
-    }, 100),
-    prepareForEdit(message) {
-      this.editingMessage = message;
-    },
-    cancelEdit() {
-      this.editingMessage = null; // Clear editing state
-    },
     async sendMessage(message) {
-      if (!message.trim()) return;
+      if (!message.text.trim() && message.attachments.length < 1) return;
 
       if (this.editingMessage) {
         try {
-          const response = await apiClient.patch(`/chats/${this.chatId}/messages/${this.editingMessage.id}`,
-              {content: message},
-              {headers: {Authorization: `Bearer ${authStore.token}`}},
-          );
+          const response = await editMessageApi(this.chatId, this.editingMessage.id, {content: message.text});
           this.editingMessage.content = response.data.data.content;
           this.editingMessage.updatedAt = response.data.data.updatedAt;
           this.editingMessage = null;
         } catch (error) {
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('toast.summary.error'),
+            detail: this.$t('errors.message.edit'),
+            life: 3000,
+          });
           this.cancelEdit();
           console.error("Error updating message:", error.message);
         }
@@ -253,146 +270,37 @@ export default {
       }
 
       try {
-        const messagePayload = {
-          chatId: this.chatId,
-          message: message.trim(),
-          recipientId: this.chatPartner.id,
-        };
+        const response = await sendMessageApi(
+            this.chatId,
+            {chatId: this.chatId, content: message.text, parentId: this?.replyingToMessage?.id, recipientId: this.chatPartner.id},
+            message.attachments
+        );
+        this.messages.push(response.data.data);
+        this.replyingToMessage = null;
 
-        await apiClient.post(`/chats/${this.chatId}/messages`, messagePayload, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
-        }).then(response => {
-          const sentMessage = response.data.data;
-          this.messages.push(sentMessage);
-        }).catch(error => {
-          console.error("Error sending message:", error.response?.data?.message || error.message);
-        });
+        await this.$nextTick();
+        this.scrollToBottom();
       } catch (error) {
+        this.toast.add({
+          severity: 'error',
+          summary: this.$t('toast.summary.error'),
+          detail: this.$t('errors.message.send'),
+          life: 3000,
+        });
         console.error("Error sending message:", error);
       }
-      await this.$nextTick();
-      this.scrollToBottom();
-    },
-    scrollToBottom() {
-      const container = this.$refs.messagesContainer;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    },
-    openContextMenu(event, message) {
-      if (message.senderId === this.currentUserId) {
-        this.contextMenuItems = [
-          {
-            label: this.$t("chat.contextMenu.reply"),
-            icon: "pi pi-reply",
-            command: () => this.replyToMessage(message),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: this.$t("chat.contextMenu.copy"),
-            icon: "pi pi-copy",
-            command: () => this.copyToClipboard(message.content),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: this.$t("chat.contextMenu.edit"),
-            icon: "pi pi-pencil",
-            command: () => this.prepareForEdit(message),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: this.$t("chat.contextMenu.delete"),
-            icon: "pi pi-trash",
-            color: "#ff595a",
-            command: () => this.deleteMessage(message),
-          },
-        ];
-      } else {
-        this.contextMenuItems = [
-          {
-            label: this.$t("chat.contextMenu.reply"),
-            icon: "pi pi-reply",
-            command: () => this.replyToMessage(message),
-          },
-          {
-            separator: true,
-          },
-          {
-            label: this.$t("chat.contextMenu.copy"),
-            icon: "pi pi-copy",
-            command: () => this.copyToClipboard(message.content),
-          },
-        ];
-      }
-
-      this.$refs.contextMenu.show(event);
     },
     async deleteMessage(message) {
       try {
-        await apiClient.delete(`/chats/${this.chatId}/messages/${message.id}`, {
-          headers: {Authorization: `Bearer ${authStore.token}`},
-        });
-        this.animateMessageDelete(message.id);
+        await deleteMessageApi(this.chatId, message.id);
+        animateMessageDelete(message.id, this);
       } catch (error) {
         console.error("Error deleting message:", error.response?.data?.message || error.message);
       }
     },
-    copyToClipboard(text) {
-      if (!navigator.clipboard) {
-        // Fallback for older browsers
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed"; // Prevent scrolling to the bottom
-        textArea.style.left = "-9999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          document.execCommand("copy");
-          console.log("Fallback: Text copied to clipboard");
-        } catch (err) {
-          console.error("Fallback: Unable to copy text", err);
-        }
-        document.body.removeChild(textArea);
-        return;
-      }
-
-      // Modern method using Clipboard API
-      navigator.clipboard.writeText(text)
-          .then(() => {
-            console.log("Text copied to clipboard");
-          })
-          .catch(err => {
-            console.error("Failed to copy text to clipboard", err);
-          });
-    },
-    animateMessageDelete(messageId) {
-      const messageElement = document.getElementById(`message-${messageId}`);
-      if (messageElement) {
-        messageElement.classList.add("fade-out");
-        setTimeout(() => {
-          this.messages = this.messages.filter((msg) => msg.id !== messageId);
-        }, 300);
-      }
-    },
-    replyToMessage(message) {
-      console.log("Replying to message:", message);
-    },
     async markMessageAsRead(messageId) {
       try {
-        await apiClient.patch(`/chats/${this.chatId}/messages/${messageId}/read`, null, {
-          headers: {Authorization: `Bearer ${authStore.token}`},
-        });
-
-        // Update the message locally
+        await markMessageAsReadApi(this.chatId, messageId);
         const message = this.messages.find((msg) => msg.id === messageId);
         if (message) {
           message.readAt = new Date().toISOString();
@@ -401,13 +309,19 @@ export default {
         console.error("Error marking message as read:", error.message);
       }
     },
+    openContextMenu(event, message) {
+      this.contextMenuItems = message.senderId === this.currentUserId
+          ? myMessageContextMenuItems(message, this)
+          : partnerMessageContextMenuItems(message, this);
+
+      this.$refs.contextMenu.show(event);
+    },
   },
 };
 </script>
 
 <style scoped>
 .chat-page {
-  max-height: calc(100vh - var(--header-height)) !important;
-  min-height: calc(100vh - var(--header-height)) !important;
+  height: calc(100vh - var(--header-height)) !important;
 }
 </style>

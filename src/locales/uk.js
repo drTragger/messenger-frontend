@@ -58,12 +58,27 @@ export default {
         },
         lastMessage: {
             empty: 'То напиши вже цімбору і вйо!',
+            attachmentOnly: 'Файлик',
         },
         message: {
             type: "Шо нового?",
             loading: "Чекайте, завантажую...",
             edited: "Відредаговано",
             notification: "Нове повідомлення від {username}"
+        },
+        attachments: {
+            caption: 'Додати опис...',
+            add: 'Додати',
+            popover: {
+                imageVideo: 'Засадити Світлину/Відео',
+                file: 'Засадити Файлик',
+                formats: 'Приймає формати {formats}',
+            },
+            preview: 'Подивити файли, що загружені',
+            empty: 'Нема файлів, же би вибрані були',
+            video: {
+                noSupport: 'Твій браузір не підтримує відео-тег.',
+            }
         },
         emoji: {
             placeholder: "Шукай пискляку",
@@ -81,6 +96,10 @@ export default {
             }
         },
         contextMenu: {
+            readAt: {
+                today: 'Сьогодні о {time}',
+                yesterday: 'Вчора о {time}',
+            },
             copy: "Копі",
             edit: "Підправити",
             delete: "Викинути",
@@ -127,6 +146,10 @@ export default {
     },
     errors: {
         unexpected: 'Сталася біда. Спробуйте знову.',
+        message: {
+            send: 'Не вдалося відправити повіданє. Спробуйте ще раз.',
+            edit: 'Не вдалося змінити повіданє. Спробуйте ще раз.',
+        },
     },
     toast: {
         summary: {

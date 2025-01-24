@@ -20,7 +20,7 @@
             class="flex items-center p-3 hover:bg-gray-100 cursor-pointer transition"
             @click="selectUser(user)"
         >
-          <AvatarPic :profilePicture="user?.profilePicture" :isOnline="user?.isOnline" />
+          <AvatarPic :user="user" :profilePicture="user?.profilePicture" :isOnline="user?.isOnline" />
           <div class="ml-3 flex-grow">
             <p class="text-gray-800 font-semibold truncate">{{ user.username }}</p>
             <p class="text-gray-500 text-sm truncate">{{ user.phone }}</p>

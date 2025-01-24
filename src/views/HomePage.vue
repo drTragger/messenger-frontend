@@ -4,7 +4,7 @@
     <PageHeader :title="appName" :subtitle="$t('home.subtitle')"/>
 
     <!-- Search Field -->
-    <UserSearch @user-selected="createChat" />
+    <UserSearch @user-selected="createChat"/>
 
     <!-- Chats List -->
     <div v-if="chats.length" class="space-y-4">
@@ -16,6 +16,7 @@
       >
         <!-- User Avatar -->
         <AvatarPic
+            :user="getChatPartner(chat)"
             :profilePicture="getChatPartner(chat)?.profilePicture"
             :isOnline="getChatPartner(chat)?.isOnline"
         />
@@ -23,23 +24,37 @@
         <!-- Chat Details -->
         <div class="flex-grow ml-4 overflow-hidden">
           <h5 class="text-gray-800 font-semibold text-lg truncate">
-            {{ getChatPartner(chat).username }}
+            {{ getUserName(chat) }}
           </h5>
-          <p class="text-gray-500 text-md truncate">
-            {{ chat?.lastMessage?.content || $t('chat.lastMessage.empty') }}
+          <p class="text-gray-500 text-md truncate flex items-center">
+            <!-- Check if the last message has an attachment -->
+            <i
+                v-if="chat?.lastMessage?.attachments?.length > 0"
+                class="pi pi-paperclip text-gray-500 mr-2"
+            ></i>
+            <!-- Display the last message content or fallback -->
+            {{
+              chat?.lastMessage?.content
+                  ? chat?.lastMessage?.content
+                  : chat?.lastMessage?.attachments.length
+                      ? $t('chat.lastMessage.attachmentOnly')
+                      : $t('chat.lastMessage.empty')
+            }}
           </p>
         </div>
 
         <!-- Time -->
         <small class="text-gray-400 text-sm">
           {{ formatLastSeen(chat?.lastMessage?.createdAt) }}
-          <i v-if="chat?.lastMessage && chat.lastMessage.recipientId === getChatPartner(chat).id" class="pi pi-check ml-1.5 text-xs" :class="{'pi-check-circle': chat.lastMessage.readAt}"></i>
+          <i v-if="chat?.lastMessage && chat.lastMessage.recipientId === getChatPartner(chat).id"
+             class="pi pi-check ml-1.5 text-xs" :class="{'pi-check-circle': chat.lastMessage.readAt}"></i>
         </small>
       </div>
     </div>
 
     <!-- No Chats -->
-    <NoMessages v-else class="hidden mt-20" ref="noMessages" :title="$t('chat.empty.title')" :subtitle="$t('chat.empty.subtitle')"/>
+    <NoMessages v-else class="hidden mt-20" ref="noMessages" :title="$t('chat.empty.title')"
+                :subtitle="$t('chat.empty.subtitle')"/>
   </div>
 </template>
 
@@ -49,13 +64,13 @@ import {authStore} from "@/utils/auth";
 import {getWebSocketManager} from "@/utils/websocket/websocket";
 import {homePageWsHandler} from "@/utils/websocket/wsHandlers";
 import {formatLastSeen} from "@/utils/formatTime";
-import AvatarPic from "@/components/AvatarPic.vue";
 import UserSearch from "@/components/UserSearch.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import NoMessages from "@/components/NoMessages.vue";
+import AvatarPic from "@/components/AvatarPic.vue";
 
 export default {
-  components: {NoMessages, PageHeader, UserSearch, AvatarPic},
+  components: {AvatarPic, NoMessages, PageHeader, UserSearch},
   setup() {
     return {authStore};
   },
@@ -120,6 +135,18 @@ export default {
     getChatPartner(chat) {
       if (!authStore.user) return null;
       return chat.user1.id === authStore.user.id ? chat.user2 : chat.user1;
+    },
+    getUserName(chat) {
+      const chatPartner = this.getChatPartner(chat);
+      if (chatPartner?.firstName) {
+        let username = '';
+        username = chatPartner.firstName;
+        if (chatPartner?.lastName) {
+          username += ' ' + chatPartner.lastName;
+        }
+        return username;
+      }
+      return chatPartner?.username;
     },
     openChat(chat) {
       this.$router.push({name: "ChatPage", params: {chatId: chat.id}});
